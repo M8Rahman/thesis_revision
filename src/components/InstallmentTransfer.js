@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
-import './Builder.css'
-import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from './contractConfig';
+import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
 
-const Builder = () => {
+function InstallmentTransfer() {
   const [projectID, setProjectID] = useState('');
-  const [builderAddress, setBuilderAddress] = useState('');
+  const [installmentAmount, setInstallmentAmount] = useState(0);
   const [web3, setWeb3] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
-    // Automatically disconnect MetaMask when component is mounted
-    disconnectMetaMask();
-
-    // Set up Web3 and contract when component is mounted
     initWeb3();
+    disconnectMetaMask(); // Disconnect MetaMask when component is mounted
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -28,7 +24,7 @@ const Builder = () => {
         setWeb3(web3Instance);
         const accounts = await web3Instance.eth.getAccounts();
         setAccounts(accounts);
-        // Initialize your contract here
+        console.log("Account Address:", accounts[0]);
         const contractInstance = new web3Instance.eth.Contract(YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS);
         setContract(contractInstance);
       } catch (error) {
@@ -53,20 +49,20 @@ const Builder = () => {
   const handleInputChange = (e) => {
     if (e.target.name === 'id') {
       setProjectID(e.target.value);
-    } else if (e.target.name === 'builderAddress') {
-      setBuilderAddress(e.target.value);
+    } else if (e.target.name === 'installmentAmount') {
+      setInstallmentAmount(e.target.value);
     }
   };
 
-  const handleSetBuilder = async () => {
+  const handleTransferInstallment = async () => {
     try {
       if (!web3) {
         console.error('Web3 not initialized.');
         return;
       }
 
-      if (!projectID || !builderAddress) {
-        console.error('Please fill in both Project ID and Builder Address.');
+      if (!projectID || !installmentAmount) {
+        console.error('Please fill in both Project ID and Installment Amount.');
         return;
       }
 
@@ -75,48 +71,44 @@ const Builder = () => {
         return;
       }
 
-      await contract.methods.setBuilder(projectID, builderAddress).send({ from: accounts[0] });
-
-      console.log('Builder set successfully!');
+      await contract.methods.sendInstallment(projectID, installmentAmount).send({
+        from: accounts[0],
+        gas: 200000,
+        value: installmentAmount, // Directly use the installmentAmount as the value
+      });
+      console.log('Amount Sent: ', installmentAmount);
+      console.log('Installment transferred successfully!');
     } catch (error) {
-      console.error('Error setting Builder:', error);
+      console.error('Error transferring installment:', error);
     }
   };
 
   return (
-    // <div>
-    //   {/* <h1 className="text-4xl mb-5 ml-36">Builder Project Management</h1> */}
-      
-    // </div>
-	<div class="card1 m-auto">
-		<form>
+    <div className="card1 m-auto">
+      <form>
         <div className='ml-24 pb-4'>
-		<label className='flex'>
-          <div>
-		  <input className="project bg-transparent ml-20" type="text" name="id" placeholder='Project ID' onChange={handleInputChange} />
-		  <hr className='ml-20 mt-1' />
-		  </div>
-        </label>
-		</div>
+          <label className='flex'>
+            <div>
+              <input className="project bg-transparent ml-20" placeholder='Project ID' type="text" name="id" onChange={handleInputChange} />
+              <hr className='ml-20 mt-1' />
+            </div>
+          </label>
+        </div>
         <label className='ml-24 flex'>
           <div>
-			<input className="bg-transparent ml-20" placeholder='Builder Address' type="text" name="builderAddress" onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		  </div>
+            <input className="bg-transparent ml-20" placeholder='Installment Amount' type="number" name="installmentAmount" onChange={handleInputChange} />
+            <hr className='ml-20 mt-1'/>
+          </div>
         </label>
         <br />
-        {/* <button className="text-black hover:text-white bg-green-400 p-1 hover:bg-green-800 rounded-xl mt-8 mb-4 h-10 w-[200px] ml-" type="button" onClick={handleSetBuilder}>
-          Set Builder
-        </button> */}
-		<div className='flex justify-center ml-16'>
-		<button className="shadow__btn" type="button" onClick={handleSetBuilder}>
-    		Set Builder
-		</button >
-		</div>
+        <div className='flex justify-center ml-16'>
+          <button className="shadow__btn ml-28" type="button" onClick={handleTransferInstallment}>
+            Transfer Installment
+          </button >
+        </div>
       </form>
-	</div>
-
+    </div>
   );
-};
+}
 
-export default Builder;
+export default InstallmentTransfer;

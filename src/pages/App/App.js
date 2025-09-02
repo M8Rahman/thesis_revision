@@ -1,15 +1,15 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Dashboard from './Dashboard';
-import ProjectCreation from './ProjectCreation';
-import CityCorporation from './CityCorporation';
-import InstallmentTransfer from './InstallmentTransfer';
-import FundsTransfer from './FundsTransfer';
-import DataDisplay from './DataDisplay';
-import Builder from './Builder';
-import Home from './Home';
-import ParticleHTML from './ParticleHTML'; // Import the ParticleHTML component
-import './Builder.css';
+import Dashboard from '../../components/Dashboard/Dashboard';
+import ProjectCreation from '../../components/ProjectCreation';
+import CityCorporation from '../CityCorporation';
+import InstallmentTransfer from '../../components/InstallmentTransfer';
+import FundsTransfer from '../../components/FundsTransfer';
+import DataDisplay from '../../components/DataDisplay';
+import Builder from '../../components/Builder/Builder';
+import Home from '../Home';
+import ParticleHTML from '../../components/ParticleHTML';
+import '../../components/Builder/Builder.css';
 
 function App() {
   return (

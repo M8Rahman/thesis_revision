@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
-import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from './contractConfig';
+import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
+//import './FundsTransfer.css'; // Import CSS file for styling
 
-function InstallmentTransfer() {
+function FundsTransfer() {
+  const [fundsAmount, setFundsAmount] = useState(0);
   const [projectID, setProjectID] = useState('');
-  const [installmentAmount, setInstallmentAmount] = useState(0);
   const [web3, setWeb3] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
     initWeb3();
-    disconnectMetaMask(); // Disconnect MetaMask when component is mounted
-
+    return () => {
+      disconnectMetaMask();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,20 +51,20 @@ function InstallmentTransfer() {
   const handleInputChange = (e) => {
     if (e.target.name === 'id') {
       setProjectID(e.target.value);
-    } else if (e.target.name === 'installmentAmount') {
-      setInstallmentAmount(e.target.value);
+    } else if (e.target.name === 'fundsAmount') {
+      setFundsAmount(e.target.value);
     }
   };
 
-  const handleTransferInstallment = async () => {
+  const handleTransferFunds = async () => {
     try {
       if (!web3) {
         console.error('Web3 not initialized.');
         return;
       }
 
-      if (!projectID || !installmentAmount) {
-        console.error('Please fill in both Project ID and Installment Amount.');
+      if (!projectID || !fundsAmount) {
+        console.error('Please fill in both Project ID and Funds Amount.');
         return;
       }
 
@@ -71,44 +73,44 @@ function InstallmentTransfer() {
         return;
       }
 
-      await contract.methods.sendInstallment(projectID, installmentAmount).send({
+      await contract.methods.sendFundsToBuilder(projectID, fundsAmount).send({
         from: accounts[0],
         gas: 200000,
-        value: installmentAmount, // Directly use the installmentAmount as the value
+        value: fundsAmount, // Directly use the fundsAmount as the value
       });
-      console.log('Amount Sent: ', installmentAmount);
-      console.log('Installment transferred successfully!');
+      console.log('Funds Amount Sent: ', fundsAmount);
+      console.log('Funds transferred successfully to the builder!');
     } catch (error) {
-      console.error('Error transferring installment:', error);
+      console.error('Error transferring funds:', error);
     }
   };
 
   return (
-    <div className="card1 m-auto">
+    <div className="card1 m-auto funds-transfer-container"> {/* Added funds-transfer-container class */}
       <form>
         <div className='ml-24 pb-4'>
           <label className='flex'>
             <div>
-              <input className="project bg-transparent ml-20" placeholder='Project ID' type="text" name="id" onChange={handleInputChange} />
+              <input className="project bg-transparent ml-20" type="text" name="id" placeholder='Project ID' onChange={handleInputChange} />
               <hr className='ml-20 mt-1' />
             </div>
           </label>
         </div>
         <label className='ml-24 flex'>
           <div>
-            <input className="bg-transparent ml-20" placeholder='Installment Amount' type="number" name="installmentAmount" onChange={handleInputChange} />
+            <input className="bg-transparent ml-20" placeholder='Funds Amount' type="text" name="fundsAmount" onChange={handleInputChange} />
             <hr className='ml-20 mt-1'/>
           </div>
         </label>
         <br />
         <div className='flex justify-center ml-16'>
-          <button className="shadow__btn ml-28" type="button" onClick={handleTransferInstallment}>
-            Transfer Installment
-          </button >
+          <button className="shadow__btn ml-24" type="button" onClick={handleTransferFunds}>
+            Transfer Funds to Builder
+          </button>
         </div>
       </form>
     </div>
   );
 }
 
-export default InstallmentTransfer;
+export default FundsTransfer;
