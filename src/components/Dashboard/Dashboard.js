@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { HiBuildingLibrary, HiOutlineUser } from "react-icons/hi2";
+import { HiBuildingLibrary, HiOutlineUser, HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import { 
   FaHome, 
   FaProjectDiagram, 
@@ -14,6 +14,7 @@ import {
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
 
   const links = [
     { path: "/home", label: "Home", icon: <FaHome className="h-5 w-5" /> },
@@ -42,11 +43,13 @@ function Dashboard() {
         {/* Top bar: Logo and account actions */}
         <div className="flex h-16 items-center gap-4 px-6 border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-md">
           {/* Left: Logo */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className={`flex items-center shrink-0 transition-all duration-300 ${collapsed ? "gap-0" : "gap-3"}`}>
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-400 text-white shadow-md">
               <HiBuildingLibrary className="h-6 w-6" />
             </span>
-            <span className="text-xl font-bold tracking-wide text-slate-100">
+            <span className={`text-xl font-bold tracking-wide text-slate-100 transition-all duration-300 overflow-hidden ${
+              collapsed ? "w-0 opacity-0 ml-0" : "w-auto opacity-100 ml-3"
+            }`}>
               GovtChain
             </span>
           </div>
@@ -90,24 +93,65 @@ function Dashboard() {
         {/* Main nav: Full screen vertical nav for desktop, horizontal for mobile */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Desktop: Vertical nav */}
-          <div className="hidden md:flex flex-col py-8 px-6 w-72 bg-slate-800/30 backdrop-blur-md border-r border-slate-700/50 h-full">
-            <ul className="space-y-2">
-              {links.map((l) => (
-                <li key={l.path}>
-                  <NavLink
-                    to={l.path}
-                    end
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 w-full text-left ${baseItem} ${isActive ? activeItem : idleItem}`
-                    }
-                    onClick={e => handleNavClick(e, l.path)}
-                  >
-                    {l.icon}
-                    {l.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+          <div
+            className={`hidden md:flex flex-col py-6 transition-all duration-300 ease-in-out bg-slate-800/30 backdrop-blur-md border-r border-slate-700/50 h-full relative ${
+              collapsed ? "w-20" : "w-72"
+            }`}
+          >
+            {/* Collapse/Expand Button */}
+            <button
+              className="absolute -right-4 -mt-6 z-20 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-full p-2 transition-all duration-200 border border-indigo-400/50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-400/40 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
+              onClick={() => setCollapsed((prev) => !prev)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? 
+                <HiChevronRight className="h-4 w-4" /> : 
+                <HiChevronLeft className="h-4 w-4" />
+              }
+            </button>
+
+            {/* Navigation Links */}
+            <div className={`${collapsed ? "px-2" : "px-6"} mt-4`}>
+              <ul className="space-y-2">
+                {links.map((l) => (
+                  <li key={l.path}>
+                    <NavLink
+                      to={l.path}
+                      end
+                      className={({ isActive }) =>
+                        `group flex items-center w-full text-left rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 relative ${
+                          collapsed 
+                            ? "px-3 py-3 justify-center" 
+                            : "px-4 py-3 gap-3"
+                        } ${
+                          isActive 
+                            ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/25 transform scale-[1.02]" 
+                            : "text-slate-300 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
+                        }`
+                      }
+                      onClick={e => handleNavClick(e, l.path)}
+                      title={collapsed ? l.label : undefined}
+                    >
+                      <span className={`flex-shrink-0 ${collapsed ? "" : "text-lg"}`}>
+                        {l.icon}
+                      </span>
+                      <span className={`font-medium text-sm tracking-wide transition-all duration-300 ${
+                        collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                      }`}>
+                        {l.label}
+                      </span>
+                      {/* Tooltip for collapsed state */}
+                      {collapsed && (
+                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-slate-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-lg border border-slate-600/50 z-30">
+                          {l.label}
+                          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-600/50"></div>
+                        </div>
+                      )}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Main content: Render nested route UI here */}
@@ -125,7 +169,11 @@ function Dashboard() {
                 to={l.path}
                 end
                 className={({ isActive }) =>
-                  `flex flex-col items-center px-3 py-2 rounded-lg text-xs font-medium min-w-max ${isActive ? "bg-indigo-600 text-white shadow-md" : "text-slate-300 bg-slate-700/60"}`
+                  `flex flex-col items-center px-3 py-2 rounded-lg text-xs font-medium min-w-max transition-all duration-200 ${
+                    isActive 
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-500/30" 
+                      : "text-slate-300 bg-slate-700/60 hover:bg-slate-700/80 hover:text-white"
+                  }`
                 }
                 onClick={e => handleNavClick(e, l.path)}
               >
