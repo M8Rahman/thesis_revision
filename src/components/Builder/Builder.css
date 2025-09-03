@@ -1,18 +1,11 @@
-@property --rotate {
+/* @property --rotate {
   syntax: "<angle>";
   initial-value: 132deg;
   inherits: false;
 }
 
-/* :root {
-  --card-height: 65vh;
-  --card-width: calc(var(--card-height) / 1.5);
-}  */
-
-
 body {
   min-height: 100vh;
-  /* background: #212534; */
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -23,14 +16,10 @@ body {
 }
 .card1 {
   background: #191c29;
-  /* width: var(--card-width); */
-  /* height: var(--card-height); */
   padding: 3px;
   position: relative;
   border-radius: 6px;
-  /* justify-content: ; */
   align-items: center;
-  /* text-align: ; */
   display: flex;
   font-size: 1.5em;
   color: rgb(88 199 250 );
@@ -58,12 +47,6 @@ body {
   inherits: false;
 }
 
-/* :root {
-  --card-height: 65vh;
-  --card-width: calc(var(--card-height) / 1.5);
-}  */
-
-
 body {
   min-height: 100vh;
   /* background: #212534; */
@@ -77,14 +60,10 @@ body {
 }
 .card1 {
   background: #191c29;
-  /* width: var(--card-width); */
-  /* height: var(--card-height); */
   padding: 3px;
   position: relative;
   border-radius: 6px;
-  /* justify-content: ; */
   align-items: center;
-  /* text-align: ; */
   display: flex;
   font-size: 1.5em;
   color: rgb(88 199 250 );
@@ -149,19 +128,9 @@ body {
   100% {
     --rotate: 360deg;
   }
-}
-
-
-
-/* .project{
-  border: 0;
-  outline: 0;
-  border-bottom: solid;
-  border-style: none;
-  box-sizing: none;
 } */
 
-.shadow__btn {
+/* .shadow__btn {
   padding: 10px 20px;
   border: none;
   font-size: 15px;
@@ -172,11 +141,9 @@ body {
   text-transform: uppercase;
   transition: 0.5s;
   transition-property: box-shadow;
-  /* justify-content: center; */
+} */
 
-}
-
-.shadow__btn {
+/* .shadow__btn {
   background: rgb(0,140,255);
   box-shadow: 0 0 25px rgb(0,140,255);
 }
@@ -186,20 +153,9 @@ body {
               0 0 25px rgb(0,140,255),
               0 0 50px rgb(0,140,255),
               0 0 100px rgb(0,140,255);
-}
-
-
-
-
-/* .project{
-  border: 0;
-  outline: 0;
-  border-bottom: solid;
-  border-style: none;
-  box-sizing: none;
 } */
 
-.shadow__btn {
+/* .shadow__btn {
   padding: 10px 20px;
   border: none;
   font-size: 15px;
@@ -210,11 +166,9 @@ body {
   text-transform: uppercase;
   transition: 0.5s;
   transition-property: box-shadow;
-  /* justify-content: center; */
+} */
 
-}
-
-.shadow__btn {
+/* .shadow__btn {
   background: rgb(0,140,255);
   box-shadow: 0 0 25px rgb(0,140,255);
 }
@@ -224,5 +178,5 @@ body {
               0 0 25px rgb(0,140,255),
               0 0 50px rgb(0,140,255),
               0 0 100px rgb(0,140,255);
-}
+} */
 

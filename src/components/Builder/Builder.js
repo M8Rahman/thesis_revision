@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
-import './Builder.css'
+// import './Builder.css'
 import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../../config';
 
 const Builder = () => {

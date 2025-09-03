@@ -76,7 +76,7 @@ function FundsTransfer() {
       await contract.methods.sendFundsToBuilder(projectID, fundsAmount).send({
         from: accounts[0],
         gas: 200000,
-        value: fundsAmount, // Directly use the fundsAmount as the value
+        value: fundsAmount,
       });
       console.log('Funds Amount Sent: ', fundsAmount);
       console.log('Funds transferred successfully to the builder!');
@@ -86,30 +86,107 @@ function FundsTransfer() {
   };
 
   return (
-    <div className="card1 m-auto funds-transfer-container"> {/* Added funds-transfer-container class */}
-      <form>
-        <div className='ml-24 pb-4'>
-          <label className='flex'>
-            <div>
-              <input className="project bg-transparent ml-20" type="text" name="id" placeholder='Project ID' onChange={handleInputChange} />
-              <hr className='ml-20 mt-1' />
-            </div>
-          </label>
-        </div>
-        <label className='ml-24 flex'>
-          <div>
-            <input className="bg-transparent ml-20" placeholder='Funds Amount' type="text" name="fundsAmount" onChange={handleInputChange} />
-            <hr className='ml-20 mt-1'/>
-          </div>
-        </label>
-        <br />
-        <div className='flex justify-center ml-16'>
-          <button className="shadow__btn ml-24" type="button" onClick={handleTransferFunds}>
-            Transfer Funds to Builder
-          </button>
-        </div>
-      </form>
+    <div className="m-auto w-full max-w-xl rounded-xl border shadow-sm
+  bg-white dark:bg-slate-800
+  border-emerald-200/70 dark:border-slate-700">
+
+  {/* Header */}
+  <div className="border-b px-6 py-4
+      border-emerald-200/70 dark:border-slate-700">
+    <h2 className="text-xl font-semibold text-emerald-900 dark:text-slate-100">
+      Funds Transfer
+    </h2>
+    <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+      Transfer allocated funds securely using a valid Project ID.
+    </p>
+  </div>
+
+  {/* Form */}
+  <form className="space-y-5 p-6" noValidate>
+    {/* Project ID */}
+    <div>
+      <label htmlFor="projectId" className="mb-2 block text-sm font-medium
+        text-emerald-800 dark:text-slate-300">
+        Project ID
+      </label>
+
+      <div className="relative">
+        <input
+          id="projectId"
+          type="text"
+          name="id"
+          placeholder="e.g. PRJ-2024-00123"
+          onChange={handleInputChange}
+          autoComplete="off"
+          className="w-full rounded-lg border bg-transparent px-4 py-2.5
+            text-emerald-900 placeholder-gray-400 dark:text-slate-100
+            border-emerald-300 focus:outline-none
+            focus:ring-2 focus:ring-emerald-400/50
+            dark:border-slate-600"
+        />
+      </div>
+
+      {/* optional helper / error slot */}
+      <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+        Use the official system-issued Project ID.
+      </p>
     </div>
+
+    {/* Funds Amount */}
+    <div>
+      <label htmlFor="fundsAmount" className="mb-2 block text-sm font-medium
+        text-emerald-800 dark:text-slate-300">
+        Funds Amount
+      </label>
+
+      <div className="relative">
+        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3
+          text-emerald-700/80 dark:text-slate-300 text-sm">
+          ৳
+        </span>
+
+        <input
+          id="fundsAmount"
+          type="text"
+          inputMode="decimal"
+          name="fundsAmount"
+          placeholder="Enter amount"
+          onChange={handleInputChange}
+          className="w-full rounded-lg border bg-transparent pl-8 pr-4 py-2.5
+            text-emerald-900 placeholder-gray-400 dark:text-slate-100
+            border-emerald-300 focus:outline-none
+            focus:ring-2 focus:ring-emerald-400/50
+            dark:border-slate-600"
+        />
+      </div>
+
+      <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+        Amount in BDT. Decimals allowed.
+      </p>
+    </div>
+
+    {/* Divider */}
+    <div className="border-t pt-4
+      border-emerald-200/70 dark:border-slate-700" />
+
+    {/* Actions */}
+    <div className="flex items-center justify-center gap-3">
+      <button
+        type="button"
+        onClick={handleTransferFunds}
+        className="inline-flex items-center rounded-lg px-5 py-2.5 font-medium
+          text-white transition-colors
+          bg-emerald-600 hover:bg-emerald-500
+          dark:bg-indigo-600 dark:hover:bg-indigo-500
+          focus:outline-none focus:ring-2
+          focus:ring-emerald-400/50 dark:focus:ring-indigo-400/50"
+      >
+        Transfer Funds
+      </button>
+    </div>
+  </form>
+</div>
+
   );
 }
 
