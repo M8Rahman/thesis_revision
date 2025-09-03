@@ -118,8 +118,7 @@ function CityCorporation() {
         <div>
           <label
             htmlFor="projectId"
-            className="mb-2 block text-sm 
-        text-white"
+            className="mb-2 block text-sm text-black dark:text-white"
           >
             Project ID
           </label>

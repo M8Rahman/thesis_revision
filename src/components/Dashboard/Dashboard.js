@@ -152,49 +152,58 @@ function Dashboard() {
               )}
             </button>
 
-            <span className={`hidden md:inline-flex h-9 w-9 items-center justify-center rounded-lg ${
-              theme === "dark"
-                ? "bg-slate-700/40 text-slate-200"
-                : "bg-emerald-100 text-emerald-700"
-            } backdrop-blur-sm`}>
-              <HiOutlineUser className="h-5 w-5" />
-            </span>
-
-            <NavLink
-              to="/sign-in"
-              className={({ isActive }) =>
-                `${baseItem} ${
-                  isActive
-                    ? (theme === "dark"
-                        ? "bg-slate-700/50 text-white ring-1 ring-slate-500/50"
-                        : "bg-emerald-100 text-emerald-900 ring-1 ring-emerald-300")
-                    : (theme === "dark"
-                        ? "text-slate-300 hover:text-white hover:bg-slate-700/30"
-                        : "text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100")
-                }`
-              }
-              onClick={e => handleNavClick(e, "/sign-in")}
-            >
-              Sign in
-            </NavLink>
-
-            <NavLink
-              to="/sign-up"
-              className={({ isActive }) =>
-                `px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
-                  isActive
-                    ? (theme === "dark"
-                        ? "bg-emerald-600 text-white shadow shadow-emerald-500/30"
-                        : "bg-emerald-500 text-white shadow shadow-emerald-400/30")
-                    : (theme === "dark"
-                        ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:from-emerald-600 hover:to-emerald-500 shadow hover:shadow-emerald-500/30"
-                        : "bg-gradient-to-r from-emerald-400 to-emerald-300 text-white hover:from-emerald-500 hover:to-emerald-400 shadow hover:shadow-emerald-400/30")
-                }`
-              }
-              onClick={e => handleNavClick(e, "/sign-up")}
-            >
-              Sign up
-            </NavLink>
+            {/* User dropdown with Sign in/Sign up */}
+            <div className="relative group">
+              <button
+                className={`hidden md:inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
+                  theme === "dark"
+                    ? "bg-slate-700/40 text-slate-200"
+                    : "bg-emerald-100 text-emerald-700"
+                } backdrop-blur-sm`}
+                aria-haspopup="true"
+                aria-expanded="false"
+                tabIndex={0}
+              >
+                <HiOutlineUser className="h-5 w-5" />
+              </button>
+              {/* Dropdown menu */}
+              <div className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-white dark:bg-slate-800 border border-emerald-200/70 dark:border-slate-700 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-all duration-200 z-50">
+                <NavLink
+                  to="/sign-in"
+                  className={({ isActive }) =>
+                    `block px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-150 ${
+                      isActive
+                        ? (theme === "dark"
+                            ? "bg-slate-700/50 text-white"
+                            : "bg-emerald-100 text-emerald-900")
+                        : (theme === "dark"
+                            ? "text-slate-300 hover:text-white hover:bg-slate-700/30"
+                            : "text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100")
+                    }`
+                  }
+                  onClick={e => handleNavClick(e, "/sign-in")}
+                >
+                  Sign in
+                </NavLink>
+                <NavLink
+                  to="/sign-up"
+                  className={({ isActive }) =>
+                    `block px-4 py-2 text-sm font-medium rounded-b-lg transition-colors duration-150 ${
+                      isActive
+                        ? (theme === "dark"
+                            ? "bg-emerald-600 text-white"
+                            : "bg-emerald-500 text-white")
+                        : (theme === "dark"
+                            ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:from-emerald-600 hover:to-emerald-500"
+                            : "bg-gradient-to-r from-emerald-400 to-emerald-300 text-white hover:from-emerald-500 hover:to-emerald-400")
+                    }`
+                  }
+                  onClick={e => handleNavClick(e, "/sign-up")}
+                >
+                  Sign up
+                </NavLink>
+              </div>
+            </div>
           </div>
         </div>
 
