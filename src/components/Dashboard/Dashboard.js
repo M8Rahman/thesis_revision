@@ -52,7 +52,7 @@ function Dashboard() {
   };
 
   const links = [
-    { path: "/home", label: "Home", icon: <FaHome className="h-5 w-5" /> },
+    { path: "/home", label: "Dashboard", icon: <FaHome className="h-5 w-5" /> },
     { path: "/project-creation", label: "Project Creation", icon: <FaProjectDiagram className="h-5 w-5" /> },
     { path: "/city-corporation", label: "City Corporation", icon: <FaCity className="h-5 w-5" /> },
     { path: "/builder", label: "Builder", icon: <FaHardHat className="h-5 w-5" /> },
