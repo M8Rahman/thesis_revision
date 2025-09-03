@@ -202,13 +202,13 @@ function Dashboard() {
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Desktop: Vertical nav */}
           <div
-            className={`hidden md:flex flex-col py-6 transition-all duration-300 ease-in-out ${sidebarBg} backdrop-blur-md ${borderColor} border-r h-full relative ${
+            className={`hidden md:flex flex-col transition-all duration-300 ease-in-out ${sidebarBg} backdrop-blur-md ${borderColor} border-r h-full relative ${
               collapsed ? "w-20" : "w-72"
             }`}
           >
             {/* Collapse/Expand Button */}
             <button
-              className="absolute -right-4 -mt-6 z-20 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-full p-2 transition-all duration-200 border border-indigo-400/50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-400/40 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
+              className="absolute -right-4 z-20 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-full p-2 transition-all duration-200 border border-indigo-400/50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-400/40 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
               onClick={() => setCollapsed((prev) => !prev)}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -220,21 +220,22 @@ function Dashboard() {
 
             {/* Navigation Links */}
             <div className={`${collapsed ? "px-2" : "px-6"} mt-4`}>
-              <ul className="space-y-2">
+              {/* Remove shadow from ul */}
+              <ul className="space-y-1 shadow-none">
                 {links.map((l) => (
                   <li key={l.path}>
                     <NavLink
                       to={l.path}
                       end
                       className={({ isActive }) =>
-                        `group flex items-center w-full text-left rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 relative ${
+                        `group flex items-center w-full text-left rounded-xl text-white focus:ring-indigo-400/50 relative ${
                           collapsed 
-                            ? "px-3 py-3 justify-center" 
-                            : "px-4 py-3 gap-3"
+                            ? "px-3 py-2.5 justify-center" 
+                            : "px-4 py-2.5 gap-3"
                         } ${
                           isActive 
                             ? (theme === "dark"
-                                ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/25 transform scale-[1.02]"
+                                ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-indigo-500/25 transform scale-[1.02]"
                                 : "text-emerald-900 bg-gradient-to-r from-emerald-200 to-emerald-100 shadow-lg shadow-emerald-200/25 transform scale-[1.02]")
                             : (theme === "dark"
                                 ? "text-slate-300 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
@@ -247,7 +248,7 @@ function Dashboard() {
                       <span className={`flex-shrink-0 ${collapsed ? "" : "text-lg"}`}>
                         {l.icon}
                       </span>
-                      <span className={`font-medium text-sm tracking-wide transition-all duration-300 ${
+                      <span className={`text-sm tracking-wide transition-all duration-300 ${
                         collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                       }`}>
                         {l.label}

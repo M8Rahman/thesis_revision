@@ -170,18 +170,18 @@ function FundsTransfer() {
       border-emerald-200/70 dark:border-slate-700" />
 
     {/* Actions */}
-    <div className="flex items-center justify-center gap-3">
+    <div className="flex items-center justify-end gap-3">
       <button
         type="button"
         onClick={handleTransferFunds}
-        className="inline-flex items-center rounded-lg px-5 py-2.5 font-medium
+        className="inline-flex items-center rounded-lg px-4 py-2 font-medium
           text-white transition-colors
           bg-emerald-600 hover:bg-emerald-500
           dark:bg-indigo-600 dark:hover:bg-indigo-500
           focus:outline-none focus:ring-2
           focus:ring-emerald-400/50 dark:focus:ring-indigo-400/50"
       >
-        Transfer Funds
+        Save
       </button>
     </div>
   </form>
