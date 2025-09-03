@@ -70,7 +70,7 @@ function FundsTransfer() {
 
       if (!contract) {
         console.error('Contract not initialized.');
-        return;
+        return;   
       }
 
       await contract.methods.sendFundsToBuilder(projectID, fundsAmount).send({
