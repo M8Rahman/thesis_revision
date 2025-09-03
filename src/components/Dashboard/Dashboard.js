@@ -247,7 +247,7 @@ function Dashboard() {
                                 ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-indigo-500/25 transform scale-[1.02] "
                                 : "text-emerald-900 bg-gradient-to-r from-emerald-200 to-emerald-100 shadow-lg shadow-emerald-200/25 transform scale-[1.02]")
                             : (theme === "light"
-                                ? "text-[#000000] hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
+                                ? "!text-black hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
                                 : "text-emerald-700 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-[1.01]")
                         }`
                       }
