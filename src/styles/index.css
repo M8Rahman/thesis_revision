@@ -14,3 +14,49 @@ body {
 code {
   font-family: "Public Sans", sans-serif;
 }
+/* 1) number ইনপুট → up/down spinner লুকান */
+.clean-input[type="number"]::-webkit-outer-spin-button,
+.clean-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.clean-input[type="number"] { 
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* 2) search ইনপুট → clear (×) ইত্যাদি লুকান */
+.clean-input[type="search"]::-webkit-search-cancel-button,
+.clean-input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* 3) date/datetime ইনপুট → ক্যালেন্ডার আইকন লুকান */
+.clean-input[type="date"]::-webkit-calendar-picker-indicator,
+.clean-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+.clean-input[type="date"],
+.clean-input[type="datetime-local"] {
+  -webkit-appearance: none;
+}
+
+/* 4) datalist সমর্থিত ইনপুটে ড্রপডাউন-স্টাইল আইকন লুকান */
+.clean-input[list]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+/* 5) password ইনপুট → reveal/clear (পুরনো Edge/IE) লুকান */
+.clean-input[type="password"]::-ms-reveal,
+.clean-input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* 6) select এর ডান দিকের ডিফল্ট অ্যারো লুকাতে (প্রয়োজনে) */
+.clean-input.selectlike,
+select.clean-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none !important;
+}
+

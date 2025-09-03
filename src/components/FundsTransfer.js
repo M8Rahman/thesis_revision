@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
-//import './FundsTransfer.css'; // Import CSS file for styling
 
 function FundsTransfer() {
   const [fundsAmount, setFundsAmount] = useState(0);
@@ -15,7 +14,6 @@ function FundsTransfer() {
     return () => {
       disconnectMetaMask();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initWeb3 = async () => {
@@ -85,6 +83,12 @@ function FundsTransfer() {
     }
   };
 
+  // Remove number input spinner for all browsers
+  const noSpinnerStyle = {
+    MozAppearance: 'textfield',
+    appearance: 'textfield',
+  };
+
   return (
     <div className="m-auto w-full max-w-xl rounded-xl border shadow-sm
   bg-white dark:bg-slate-800
@@ -102,11 +106,11 @@ function FundsTransfer() {
   </div>
 
   {/* Form */}
-  <form className="space-y-5 p-6" noValidate>
+  <form className="space-y-5 p-6 text-white" noValidate>
     {/* Project ID */}
     <div>
-      <label htmlFor="projectId" className="mb-2 block text-sm font-medium
-        text-emerald-800 dark:text-slate-300">
+      <label htmlFor="projectId" className="mb-2 block text-sm 
+        text-white">
         Project ID
       </label>
 
@@ -119,7 +123,7 @@ function FundsTransfer() {
           onChange={handleInputChange}
           autoComplete="off"
           className="w-full rounded-lg border bg-transparent px-4 py-2.5
-            text-emerald-900 placeholder-gray-400 dark:text-slate-100
+            text-white placeholder-gray-400 
             border-emerald-300 focus:outline-none
             focus:ring-2 focus:ring-emerald-400/50
             dark:border-slate-600"
@@ -134,8 +138,8 @@ function FundsTransfer() {
 
     {/* Funds Amount */}
     <div>
-      <label htmlFor="fundsAmount" className="mb-2 block text-sm font-medium
-        text-emerald-800 dark:text-slate-300">
+      <label htmlFor="fundsAmount" className="mb-2 block text-sm
+        text-white">
         Funds Amount
       </label>
 
@@ -153,10 +157,13 @@ function FundsTransfer() {
           placeholder="Enter amount"
           onChange={handleInputChange}
           className="w-full rounded-lg border bg-transparent pl-8 pr-4 py-2.5
-            text-emerald-900 placeholder-gray-400 dark:text-slate-100
+            text-white placeholder-gray-400
             border-emerald-300 focus:outline-none
             focus:ring-2 focus:ring-emerald-400/50
             dark:border-slate-600"
+          style={noSpinnerStyle}
+          // Remove spinner for Chrome, Safari, Edge, Opera
+          onWheel={e => e.target.blur()}
         />
       </div>
 
