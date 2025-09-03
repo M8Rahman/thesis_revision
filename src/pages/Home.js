@@ -86,7 +86,7 @@ const Home = () => {
 
   return (
     <div className=" bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 rounded-lg dark:to-slate-800 mt-24">
-      <div className="max-w-screen-sm sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8  py-6 space-y-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8  py-6 space-y-8">
         {/* Header Card (kept airy but compact) */}
         <div className="rounded-2xl border border-slate-200 bg-white/90 dark:bg-slate-800/90 dark:border-slate-700 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4 p-6">
@@ -147,10 +147,10 @@ const Home = () => {
                   <span className={kpi.ic}>{kpi.icon}</span>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     {kpi.label}
                   </p>
-                  <p className="mt-1 text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+                  <p className="mt-1 text-base md:text-lg text-slate-900 dark:text-white">
                     {kpi.value}
                   </p>
                 </div>
