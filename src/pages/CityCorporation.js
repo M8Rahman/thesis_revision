@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
-import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
-
+import React, { useState, useEffect } from "react";
+import Web3 from "web3";
+import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from "../config";
 
 function CityCorporation() {
-  const [projectID, setProjectID] = useState('');
-  const [cityCorporationAddress, setCityCorporationAddress] = useState('');
+  const [projectID, setProjectID] = useState("");
+  const [cityCorporationAddress, setCityCorporationAddress] = useState("");
   const [web3, setWeb3] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [contract, setContract] = useState(null);
@@ -29,31 +28,37 @@ function CityCorporation() {
         const accounts = await web3Instance.eth.getAccounts();
         setAccounts(accounts);
         // Initialize your contract here
-        const contractInstance = new web3Instance.eth.Contract(YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS);
+        const contractInstance = new web3Instance.eth.Contract(
+          YOUR_CONTRACT_ABI,
+          YOUR_CONTRACT_ADDRESS
+        );
         setContract(contractInstance);
       } catch (error) {
-        console.error('User denied account access:', error);
+        console.error("User denied account access:", error);
       }
     } else {
-      console.error('MetaMask not found. Please install MetaMask.');
+      console.error("MetaMask not found. Please install MetaMask.");
     }
   };
 
   const disconnectMetaMask = async () => {
     if (window.ethereum) {
       try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        await window.ethereum.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        await window.ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
       } catch (error) {
-        console.error('Error disconnecting MetaMask:', error);
+        console.error("Error disconnecting MetaMask:", error);
       }
     }
   };
 
   const handleInputChange = (e) => {
-    if (e.target.name === 'id') {
+    if (e.target.name === "id") {
       setProjectID(e.target.value);
-    } else if (e.target.name === 'cityCorporationAddress') {
+    } else if (e.target.name === "cityCorporationAddress") {
       setCityCorporationAddress(e.target.value);
     }
   };
@@ -61,54 +66,139 @@ function CityCorporation() {
   const handleSetCityCorporation = async () => {
     try {
       if (!web3) {
-        console.error('Web3 not initialized.');
+        console.error("Web3 not initialized.");
         return;
       }
 
       if (!projectID || !cityCorporationAddress) {
-        console.error('Please fill in both Project ID and City Corporation Address.');
+        console.error(
+          "Please fill in both Project ID and City Corporation Address."
+        );
         return;
       }
 
       if (!contract) {
-        console.error('Contract not initialized.');
+        console.error("Contract not initialized.");
         return;
       }
 
-      await contract.methods.setCityCorporation(projectID, cityCorporationAddress).send({ from: accounts[0] });
+      await contract.methods
+        .setCityCorporation(projectID, cityCorporationAddress)
+        .send({ from: accounts[0] });
 
-      console.log('City Corporation set successfully!');
+      console.log("City Corporation set successfully!");
     } catch (error) {
-      console.error('Error setting City Corporation:', error);
+      console.error("Error setting City Corporation:", error);
     }
   };
 
   return (
-	<div className="card1 m-auto">
-	<form>
-		<div className='ml-24 pb-4'>
-		<label className='flex'>
-			<div>
-			<input className="project bg-transparent ml-20" placeholder='Project ID' type="text" name="id" onChange={handleInputChange} />
-			<hr className='ml-20 mt-1' />
-			</div>
-		</label>
-		</div>
-		<label className='ml-24 flex'>
-		<div>
-			<input className="bg-transparent ml-20" placeholder='City Corporation Address' type="text" name="cityCorporationAddress" onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		</div>
-		</label>
-		<br />
-		<div className='flex justify-center ml-16'>
-		<button className="shadow__btn ml-28" type="button" onClick={handleSetCityCorporation}>
-			Set City Corporation
-		</button >
-		</div>
-	</form>
-	</div>
+    <div
+      className="m-auto w-full max-w-xl rounded-xl border shadow-sm
+  bg-white dark:bg-slate-800
+  border-emerald-200/70 dark:border-slate-700"
+    >
+      {/* Header */}
+      <div
+        className="border-b px-6 py-4
+      border-emerald-200/70 dark:border-slate-700"
+      >
+        <h2 className="text-xl font-semibold text-emerald-900 dark:text-slate-100">
+          Set City Corporation
+        </h2>
+        <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+          Assign a city corporation address to a project using a valid Project
+          ID.
+        </p>
+      </div>
 
+      {/* Form */}
+      <form className="space-y-5 p-6 text-white" noValidate>
+        {/* Project ID */}
+        <div>
+          <label
+            htmlFor="projectId"
+            className="mb-2 block text-sm 
+        text-white"
+          >
+            Project ID
+          </label>
+
+          <div className="relative">
+            <input
+              id="projectId"
+              type="text"
+              name="id"
+              placeholder="e.g. PRJ-2024-00123"
+              onChange={handleInputChange}
+              autoComplete="off"
+              className="w-full rounded-lg border bg-transparent px-4 py-2.5
+            text-white placeholder-gray-400 
+            border-emerald-300 focus:outline-none
+            focus:ring-2 focus:ring-emerald-400/50
+            dark:border-slate-600"
+            />
+          </div>
+
+          {/* optional helper / error slot */}
+          <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+            Use the official system-issued Project ID.
+          </p>
+        </div>
+
+        {/* City Corporation Address */}
+        <div>
+          <label
+            htmlFor="cityCorporationAddress"
+            className="mb-2 block text-sm
+        text-white"
+          >
+            City Corporation Address
+          </label>
+
+          <div className="relative">
+            <input
+              id="cityCorporationAddress"
+              type="text"
+              name="cityCorporationAddress"
+              placeholder="Enter city corporation address"
+              onChange={handleInputChange}
+              className="w-full rounded-lg border bg-transparent px-4 py-2.5
+            text-white placeholder-gray-400
+            border-emerald-300 focus:outline-none
+            focus:ring-2 focus:ring-emerald-400/50
+            dark:border-slate-600"
+            />
+          </div>
+
+          <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+            Enter the wallet address of the city corporation.
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div
+          className="border-t pt-4
+      border-emerald-200/70 dark:border-slate-700"
+        />
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleSetCityCorporation}
+            className="inline-flex items-center rounded-lg px-4 py-2 font-medium
+          text-white transition-colors
+          bg-emerald-600 hover:bg-emerald-500
+          dark:bg-indigo-600 dark:hover:bg-indigo-500
+          focus:outline-none focus:ring-2
+          focus:ring-emerald-400/50 dark:focus:ring-indigo-400/50"
+          >
+            Set City Corporation
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
