@@ -87,82 +87,11 @@ function ProjectCreation() {
   return (
     <div>
       {!isConnected ? (
-        // <button
-        //   className="text-black hover:text-white bg-green-400 p-1 hover:bg-green-800 rounded-xl mt-8 mb-4 h-10 w-[180px] ml-48"
-        // type="button"
-        // onClick={() => setIsConnected(true)}
-        // >
-        //   Connect to MetaMask
-        // </button>
         <button className="shadow__btn ml-16" type="button" onClick={() => setIsConnected(true)}>
     		  Connect to MetaMask
 		    </button>
       ) : (
-        // <div className='border-4 border-white-950 bg-slate-400 m-2 p-4 w-2/5 ml-[425px] shadow-lg rounded-lg font-bold text-[16px] mt-[128px]'>
-        //   <div className='mt-8'>
-        //   <label className='ml-24'>
-        //     Project ID: 
-        //   <input className='mb-2 ml-20 rounded-md'
-            // type="text"
-            // name="id"
-            // placeholder="Project ID"
-            // value={projectDetails.id}
-            // onChange={handleInputChange}
-        //   />
-        //   </label>
-        //   </div>
-        //   <label className='ml-24'>
-        //     Project Name:
-        //   <input className='mb-2 ml-[53px] rounded-md'
-            // type="text"
-            // name="name"
-            // placeholder="Project Name"
-            // value={projectDetails.name}
-            // onChange={handleInputChange}
-        //   />
-        //   </label>
-        //   <br></br>
-        //   <label className='ml-24'>
-        //     Project Area:
-        //   <input className='mb-2 ml-[61px] rounded-md'
-            // type="text"
-            // name="area"
-            // placeholder="Project Area"
-            // value={projectDetails.area}
-            // onChange={handleInputChange}
-        //   />
-        //   </label>
-        //   <br></br>
-        //   <label className='ml-24'>
-        //     Project Budget:
-        //   <input className='mb-2 ml-[42px] rounded-md'
-            // type="number"
-            // name="budget"
-            // placeholder="Budget"
-            // value={projectDetails.budget}
-            // onChange={handleInputChange}
-        //   />
-        //   </label>
-        //   <br></br>
-        //   <label className='ml-24'>
-        //     Treasury:
-        //   <input className='ml-[88px] rounded-md'
-            // type="text"
-            // name="treasury"
-            // placeholder="Treasury"
-            // value={projectDetails.treasury}
-            // onChange={handleInputChange}
-        //   />
-        //   </label>
-        //   <br></br>
-        //   <button
-        //     className="text-black hover:text-white bg-green-400 p-1 hover:bg-green-800 rounded-xl mt-8 mb-4 h-10 w-[152px] ml-48"
-        //     type="button"
-        //     onClick={handleAllocateBudget}
-        //   >
-        //     Allocate Budget
-        //   </button>
-        // </div>
+
         <div class="card1 m-auto">
 		<form>
         <div className='ml-24 pb-2'>
@@ -221,9 +150,7 @@ function ProjectCreation() {
 		  </div>
         </label>
         <br />
-        {/* <button className="text-black hover:text-white bg-green-400 p-1 hover:bg-green-800 rounded-xl mt-8 mb-4 h-10 w-[200px] ml-" type="button" onClick={handleSetBuilder}>
-          Set Builder
-        </button> */}
+
 		<div className='flex justify-center ml-16'>
 		<button className="shadow__btn ml-16" type="button" onClick={handleAllocateBudget}>
     		Allocate Budget

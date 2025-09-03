@@ -81,7 +81,7 @@ function Dashboard() {
   // Set top bar background based on theme
   const topBarBg =
     theme === "dark"
-      ? "bg-slate-800/30"
+      ? "bg-slate-800/30"  
       : "bg-emerald-50/80";
 
   // Set sidebar background based on theme
@@ -235,11 +235,11 @@ function Dashboard() {
                         } ${
                           isActive 
                             ? (theme === "dark"
-                                ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-indigo-500/25 transform scale-[1.02]"
+                                ? "text-white bg-gradient-to-r from-indigo-600 to-indigo-500 shadow-indigo-500/25 transform scale-[1.02] "
                                 : "text-emerald-900 bg-gradient-to-r from-emerald-200 to-emerald-100 shadow-lg shadow-emerald-200/25 transform scale-[1.02]")
-                            : (theme === "dark"
-                                ? "text-slate-300 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
-                                : "text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 hover:transform hover:scale-[1.01]")
+                            : (theme === "light"
+                                ? "text-[#000000] hover:bg-slate-700/50 hover:transform hover:scale-[1.01]"
+                                : "text-emerald-700 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-[1.01]")
                         }`
                       }
                       onClick={e => handleNavClick(e, l.path)}
@@ -248,7 +248,7 @@ function Dashboard() {
                       <span className={`flex-shrink-0 ${collapsed ? "" : "text-lg"}`}>
                         {l.icon}
                       </span>
-                      <span className={`text-sm tracking-wide transition-all duration-300 ${
+                      <span className={`text-sm text-black dark:text-white tracking-wide transition-all duration-300 ${
                         collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                       }`}>
                         {l.label}
