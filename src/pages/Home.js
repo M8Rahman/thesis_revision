@@ -84,7 +84,7 @@ const Home = () => {
   };
 
   return (
-    <div className="mt-[450px]">
+    <div className="mt-24">
       <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 rounded-lg dark:to-slate-800">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
           {/* Header Card (kept airy but compact) */}
