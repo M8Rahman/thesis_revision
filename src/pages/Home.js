@@ -85,7 +85,7 @@ const Home = () => {
 
   return (
     <div className="mt-24">
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 rounded-lg dark:to-slate-800">
+      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-lg overflow-x-auto">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
           {/* Header Card (kept airy but compact) */}
           <div className="rounded-2xl border border-slate-200 bg-white/90 dark:bg-slate-800/90 dark:border-slate-700 shadow-sm">
@@ -93,7 +93,7 @@ const Home = () => {
               <div className="flex items-center gap-4">
                 <img src={block} className="h-12 w-12" alt="Blockchain" />
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-white">
+                  <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
                     Government Fund Management
                   </h1>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -163,7 +163,7 @@ const Home = () => {
           <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
               <div>
-                <h2 className="text-lg md:text-xl font-semibold text-white">
+                <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-slate-100">
                   Recent Projects
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -177,7 +177,7 @@ const Home = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+                <thead className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 text-xs uppercase tracking-wide text-white dark:bg-gradient-to-r dark:from-slate-900 dark:via-purple-900 dark:to-slate-900">
                   <tr>
                     <th className="px-6 py-3">Project ID</th>
                     <th className="px-6 py-3">Project Name</th>
@@ -195,31 +195,31 @@ const Home = () => {
                       key={project.projectID}
                       className={
                         i % 2
-                          ? "bg-slate-50 dark:bg-slate-700/40"
+                          ? "bg-slate-100 dark:bg-purple-900/30"
                           : "bg-white dark:bg-slate-800"
                       }
                     >
-                      <td className="px-6 py-4 text-sm font-semibold text-white">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                         {project.projectID}
                       </td>
-                      <td className="px-6 py-4 text-sm text-white">
+                      <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                         {project.projectName}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-purple-200">
                         {project.projectArea}
                       </td>
-                      <td className="px-6 py-4 text-sm text-white">
+                      <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                         {formatCurrency(parseInt(project.allocatedBudget))}
                       </td>
-                      <td className="px-6 py-4 text-sm text-white">
+                      <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                         {formatCurrency(
                           parseInt(project.fundsSentToCityCorporation)
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-white">
+                      <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                         {formatCurrency(parseInt(project.fundsSentToBuilder))}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-purple-200">
                         {project.installmentNumber}
                       </td>
                       <td className="px-6 py-4">
