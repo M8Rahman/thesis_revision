@@ -48,9 +48,10 @@ const SignIn = () => {
         </svg>
       </div>
 
-      <div className="relative flex flex-col m-6 bg-slate-800/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-slate-700/50 md:flex-row overflow-hidden max-w-5xl">
+      {/* Increased width and min-width for the login card */}
+      <div className="relative flex flex-col m-6 bg-slate-800/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-slate-700/50 md:flex-row overflow-hidden max-w-5xl w-full ">
         {/* Left side */}
-        <div className="flex flex-col justify-center p-8 md:p-14 md:w-96">
+        <div className="flex flex-col justify-center p-8 gap-x-30 md:p-14 md:w-[480px]">
           {/* Header with blockchain branding */}
           <div className="flex items-center mb-6">
             <div className="p-3 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-2xl mr-4">
@@ -66,10 +67,6 @@ const SignIn = () => {
               </div>
             </div>
           </div>
-          
-          <span className="font-light text-gray-300 mb-8 text-lg">
-            Access your decentralized dashboard securely
-          </span>
 
           {/* Email Input */}
           <div className="py-4">
@@ -153,7 +150,7 @@ const SignIn = () => {
         </div>
 
         {/* Right side - Blockchain visualization */}
-        <div className="relative md:w-96 min-h-[400px] md:min-h-full">
+        <div className="relative md:w-[480px] min-h-[400px] md:min-h-full">
           {/* Dark gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-purple-900 to-slate-900"></div>
           

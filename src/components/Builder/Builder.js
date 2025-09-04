@@ -93,36 +93,40 @@ const Builder = () => {
 
   return (
     <div
-      className="m-auto w-full max-w-xl rounded-xl border shadow-sm
-  bg-white dark:bg-slate-800
-  border-emerald-200/70 dark:border-slate-700"
+      className={`
+        m-auto w-full max-w-xl rounded-b-3xl border shadow-2xl
+        bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-slate-700/50
+        dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 dark:border-slate-700/50
+        light:bg-gradient-to-br light:from-white light:via-emerald-50 light:to-emerald-100 light:border-emerald-200
+      `}
     >
       {/* Header */}
       <div
-        className="border-b px-6 py-4
-      border-emerald-200/70 dark:border-slate-700"
+        className={`
+          border-b px-8 py-6 
+          bg-gradient-to-r from-cyan-500/10 to-purple-600/10 border-slate-700/50
+          dark:bg-gradient-to-r dark:from-cyan-500/10 dark:to-purple-600/10 dark:border-slate-700/50
+          light:bg-gradient-to-r light:from-emerald-100 light:to-emerald-50 light:border-emerald-200 space-y-4
+        `}
       >
-        <h2 className="text-xl font-semibold text-emerald-900 dark:text-slate-100">
-          Set Builder
-        </h2>
-        <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+        <h2 className="text-white text-2xl font-semibold">Set Builder</h2>
+        <p className="text-white">
           Assign a builder address to a project using a valid Project ID.
         </p>
       </div>
 
       {/* Form */}
-      <form className="space-y-5 p-6 text-white" noValidate>
+      <form
+        className="space-y-7 p-8 text-white dark:text-white light:text-emerald-900"
+        noValidate
+      >
         {/* Project ID */}
         <div>
-          <label
-            htmlFor="projectId"
-            className="mb-2 block text-sm 
-        text-white"
-          >
+          <label htmlFor="projectId" className="text-white text-lg block mb-4">
             Project ID
           </label>
 
-          <div className="relative">
+          <div className="relative mb-2">
             <input
               id="projectId"
               type="text"
@@ -130,16 +134,17 @@ const Builder = () => {
               placeholder="e.g. PRJ-2024-00123"
               onChange={handleInputChange}
               autoComplete="off"
-              className="w-full rounded-lg border bg-transparent px-4 py-2.5
-            text-white placeholder-gray-400 
-            border-emerald-300 focus:outline-none
-            focus:ring-2 focus:ring-emerald-400/50
-            dark:border-slate-600"
+              className={`
+                w-full rounded-lg border px-4 py-3 transition-all duration-200
+                bg-slate-900/60 text-white placeholder-cyan-200/60 border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-600
+                dark:bg-slate-900/60 dark:text-white dark:placeholder-cyan-200/60 dark:border-cyan-400/60 dark:focus:ring-cyan-400/40
+                light:bg-white light:text-emerald-900 light:placeholder-emerald-400/60 light:border-emerald-300 light:focus:ring-emerald-200/60
+              `}
             />
           </div>
 
           {/* optional helper / error slot */}
-          <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+          <p className="mt-1 ml-0.5 text-xs text-white">
             Use the official system-issued Project ID.
           </p>
         </div>
@@ -148,36 +153,35 @@ const Builder = () => {
         <div>
           <label
             htmlFor="builderAddress"
-            className="mb-2 block text-sm
-        text-white"
+            className="text-white text-lg block mb-4"
           >
             Builder Address
           </label>
 
-          <div className="relative">
+          <div className="relative mb-2">
             <input
               id="builderAddress"
               type="text"
               name="builderAddress"
               placeholder="Enter builder address"
               onChange={handleInputChange}
-              className="w-full rounded-lg border bg-transparent px-4 py-2.5
-            text-white placeholder-gray-400
-            border-emerald-300 focus:outline-none
-            focus:ring-2 focus:ring-emerald-400/50
-            dark:border-slate-600"
+              className={`
+                w-full rounded-lg border px-4 py-3 transition-all duration-200
+                bg-slate-900/60 text-white placeholder-cyan-200/60 border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 dark:border-slate-600
+                dark:bg-slate-900/60 dark:text-white dark:placeholder-cyan-200/60 dark:border-cyan-400/60 dark:focus:ring-cyan-400/40
+                light:bg-white light:text-emerald-900 light:placeholder-emerald-400/60 light:border-emerald-300 light:focus:ring-emerald-200/60
+              `}
             />
           </div>
 
-          <p className="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+          <p className="mt-1 ml-0.5 text-xs text-white">
             Enter the wallet address of the builder.
           </p>
         </div>
 
         {/* Divider */}
         <div
-          className="border-t pt-4
-      border-emerald-200/70 dark:border-slate-700"
+          className={`border-t pt-4 border-slate-700/50 dark:border-slate-700/50 light:border-emerald-200`}
         />
 
         {/* Actions */}
@@ -185,12 +189,13 @@ const Builder = () => {
           <button
             type="button"
             onClick={handleSetBuilder}
-            className="inline-flex items-center rounded-lg px-4 py-2 font-medium
-          text-white transition-colors
-          bg-emerald-600 hover:bg-emerald-500
-          dark:bg-indigo-600 dark:hover:bg-indigo-500
-          focus:outline-none focus:ring-2
-          focus:ring-emerald-400/50 dark:focus:ring-indigo-400/50"
+            className={`
+              inline-flex items-center rounded-lg px-5 py-2.5 font-semibold transition-all duration-200
+              bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white
+              focus:outline-none focus:ring-2 focus:ring-cyan-400/50 shadow-lg shadow-cyan-500/10
+              dark:bg-gradient-to-r dark:from-cyan-500 dark:to-purple-600 dark:hover:from-cyan-400 dark:hover:to-purple-500 dark:text-white dark:focus:ring-cyan-400/50
+              light:bg-gradient-to-r light:from-emerald-400 light:to-emerald-600 light:hover:from-emerald-300 light:hover:to-emerald-500 light:text-emerald-900 light:focus:ring-emerald-300/50
+            `}
           >
             Set Builder
           </button>
