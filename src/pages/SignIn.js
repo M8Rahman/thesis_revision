@@ -1,12 +1,5 @@
 import React, { useRef, useState } from "react";
 import {
-  signInWithEmailAndPassword,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signOut,
-} from "firebase/auth";
-import { auth } from "../firebase.init";
-import {
   FaEye,
   FaLock,
   FaShieldAlt,
@@ -16,84 +9,82 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import { MdOutlineArrowCircleRight } from "react-icons/md";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-// Friendly errors
-function mapFirebaseError(code = "", fallback = "Sign-in failed. Please try again.") {
-  const c = String(code || "").toLowerCase();
-  if (c.includes("invalid-email")) return "Please enter a valid email address.";
-  if (c.includes("missing-password")) return "Please enter your password.";
-  if (c.includes("invalid-credential")) return "Email or password is incorrect.";
-  if (c.includes("wrong-password")) return "Incorrect password.";
-  if (c.includes("user-not-found")) return "No account found with this email.";
-  if (c.includes("user-disabled")) return "This account has been disabled.";
-  if (c.includes("too-many-requests")) return "Too many attempts. Please wait and try again.";
-  if (c.includes("network-request-failed")) return "Network error. Check your connection.";
-  return fallback;
-}
+// ✅ ADD: Firebase imports
+import { auth } from "../firebase.init";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const emailRef = useRef(null);
+
+  // form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  // ui state
+  const [error, setError] = useState("");      // ✅ ADD: show errors
+  const [success, setSuccess] = useState("");  // ✅ ADD: show success message
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-
-      // 1) Sign in with Firebase (SDK builds correct REST payload)
-      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const user = cred?.user;
-
-      // 2) If not verified, send verification and require verification first
-      if (user && !user.emailVerified) {
-        try {
-          await sendEmailVerification(user);
-          toast.success("Verification email sent. Check your inbox/spam.");
-        } catch {
-          toast.error("Couldn't send verification email. Please try again later.");
-        }
-        await signOut(auth);
-        toast("Please verify your email to continue.", { icon: "✉️" });
-        return;
-      }
-
-      // 3) Success
-      toast.success("Login successful!");
-      // navigate("/dashboard"); // optional redirect
-    } catch (err) {
-      // Show exact message/code to help you diagnose 400s
-      const friendly = mapFirebaseError(err?.code || err?.message);
-      toast.error(friendly);
-
-      // Dev hint (visible in console): full payload
-      // eslint-disable-next-line no-console
-      console.debug("Firebase error:", { code: err?.code, message: err?.message });
-    } finally {
-      setLoading(false);
+  // Optional: map Firebase error codes to nicer messages
+  const mapFirebaseError = (code, message) => {
+    switch (code) {
+      case "auth/invalid-email":
+        return "Invalid email address.";
+      case "auth/user-disabled":
+        return "This account has been disabled.";
+      case "auth/user-not-found":
+        return "No account found for this email.";
+      case "auth/wrong-password":
+      case "auth/invalid-credential":
+        return "Incorrect email or password.";
+      case "auth/too-many-requests":
+        return "Too many attempts. Try again later.";
+      default:
+        // fallback to SDK message
+        return message || "Something went wrong.";
     }
   };
 
+  // ✅ REAL submit handler with Firebase auth
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      // console.log("Signed in user:", result.user);
+      setSuccess("Signed in successfully.");
+      // OPTIONAL: redirect after sign-in
+      // navigate("/dashboard");
+    } catch (err) {
+      // console.error(err);
+      setError(mapFirebaseError(err.code, err.message));
+    }
+  };
+
+  // ✅ REAL forgot password handler with Firebase
   const handleForgotPassword = async () => {
-    const currentEmail = emailRef.current?.value || email || "";
+    setError("");
+    setSuccess("");
+
+    const currentEmail = emailRef.current?.value?.trim() || email.trim();
     if (!currentEmail) {
-      toast.error("Please enter your email first.");
+      setError("Please enter your email to reset password.");
       return;
     }
+
     try {
-      setLoading(true);
-      await sendPasswordResetEmail(auth, currentEmail.trim());
-      toast.success("Password reset email sent. Check your inbox/spam.");
+      await sendPasswordResetEmail(auth, currentEmail);
+      setSuccess("Password reset email sent. Please check your inbox.");
     } catch (err) {
-      toast.error(mapFirebaseError(err?.code || err?.message, "Couldn't send reset email."));
-      console.debug("Reset error:", { code: err?.code, message: err?.message });
-    } finally {
-      setLoading(false);
+      setError(mapFirebaseError(err.code, err.message));
     }
   };
 
@@ -123,16 +114,42 @@ const SignIn = () => {
               </span>
               <div className="flex items-center mt-1">
                 <FaLink className="w-4 h-4 text-cyan-400 mr-1" />
-                <span className="text-sm text-cyan-400 font-medium">Blockchain Portal</span>
+                <span className="text-sm text-cyan-400 font-medium">
+                  Blockchain Portal
+                </span>
               </div>
             </div>
           </div>
+
+          {/* Alerts */}
+          {(error || success) && (
+            <div className="mb-2">
+              {error && (
+                <div
+                  className="mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div
+                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200"
+                  role="status"
+                >
+                  {success}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* FORM */}
           <form className="space-y-1" onSubmit={handleSubmit} noValidate>
             {/* Email */}
             <div className="py-4">
-              <label className="block mb-3 text-sm font-medium text-gray-300">Email Address</label>
+              <label className="block mb-3 text-sm font-medium text-gray-300">
+                Email Address
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FaEnvelope className="h-5 w-5 text-gray-400" />
@@ -145,13 +162,16 @@ const SignIn = () => {
                   className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-xl placeholder:text-gray-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-white"
                   placeholder="Enter your email"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div className="py-4">
-              <label className="block mb-3 text-sm font-medium text-gray-300">Password</label>
+              <label className="block mb-3 text-sm font-medium text-gray-300">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FaLock className="h-5 w-5 text-gray-400" />
@@ -163,11 +183,13 @@ const SignIn = () => {
                   className="w-full pl-10 pr-12 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-xl placeholder:text-gray-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-white"
                   placeholder="Enter your password"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center hover:scale-110 transition-transform"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <FaEyeSlash className="h-5 w-5 text-gray-400 hover:text-gray-300" />
@@ -183,10 +205,7 @@ const SignIn = () => {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                disabled={loading}
-                className={`text-sm font-semibold hover:underline transition-colors ${
-                  loading ? "text-slate-400 cursor-not-allowed" : "text-cyan-400 hover:text-cyan-300"
-                }`}
+                className="text-sm font-semibold hover:underline transition-colors text-cyan-400 hover:text-cyan-300"
               >
                 Forgot password?
               </button>
@@ -195,15 +214,11 @@ const SignIn = () => {
             {/* Sign in */}
             <button
               type="submit"
-              disabled={loading}
-              className={`group w-full font-semibold py-3 px-6 rounded-xl mb-6 transform transition-all duration-200 flex items-center justify-center
-                ${
-                  loading
-                    ? "bg-slate-700 text-slate-300 cursor-not-allowed"
-                    : "bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/25"
-                }`}
+              className="group w-full font-semibold py-3 px-6 rounded-xl mb-6 transform transition-all duration-200 flex items-center justify-center bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/25"
             >
-              <span className="mr-2">{loading ? "Signing in..." : "Access Blockchain"}</span>
+              <span className="mr-2">
+                Access Blockchain
+              </span>
               <MdOutlineArrowCircleRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
           </form>
@@ -244,14 +259,19 @@ const SignIn = () => {
                 Decentralized Security
               </h3>
               <p className="text-gray-300 leading-relaxed text-sm max-w-sm">
-                Your data is secured by blockchain technology with immutable records and cryptographic protection
+                Your data is secured by blockchain technology with immutable
+                records and cryptographic protection
               </p>
             </div>
           </div>
           <div className="absolute inset-0 opacity-5">
             <div className="grid grid-cols-8 gap-2 h-full p-4">
               {Array.from({ length: 64 }, (_, i) => (
-                <div key={i} className="bg-white rounded-sm animate-pulse" style={{ animationDelay: `${i * 50}ms` }}></div>
+                <div
+                  key={i}
+                  className="bg-white rounded-sm animate-pulse"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                ></div>
               ))}
             </div>
           </div>

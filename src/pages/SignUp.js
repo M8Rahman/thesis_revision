@@ -86,6 +86,7 @@ const SignUp = () => {
       if (ENABLE_EMAIL_VERIFICATION && cred?.user) {
         try {
           await sendEmailVerification(cred.user);
+          
         } catch (ve) {
           console.warn("Email verification send failed:", ve);
         }
