@@ -84,8 +84,7 @@ const Home = () => {
   };
 
   return (
-    <div className="mt-24">
-      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-lg overflow-x-auto">
+    <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-lg overflow-x-auto">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
           {/* Header Card (kept airy but compact) */}
           <div className="rounded-2xl border border-slate-200 bg-white/90 dark:bg-slate-800/90 dark:border-slate-700 shadow-sm">
@@ -273,7 +272,6 @@ const Home = () => {
             </div>
           </section>
         </div>
-      </div>
     </div>
   );
 };
