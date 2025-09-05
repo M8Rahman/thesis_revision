@@ -262,16 +262,17 @@ function DashboardLayout({ children }) {
             <div className="relative group">
               <button
                 onClick={handleSignOut}
-                className={`hidden md:inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
+                className={`hidden md:inline-flex h-9 items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
                   theme === "dark"
                     ? "bg-slate-700/40 text-slate-200"
                     : "bg-emerald-100 text-emerald-700"
-                } backdrop-blur-sm`}
+                } backdrop-blur-sm px-4`}
                 aria-haspopup="true"
                 aria-expanded="false"
                 tabIndex={0}
               >
-                <HiOutlineUser className="h-5 w-5" />
+                <HiOutlineUser className="h-5 w-5 mr-2" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
