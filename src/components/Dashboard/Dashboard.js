@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   HiBuildingLibrary,
   HiOutlineUser,
@@ -17,6 +17,8 @@ import {
   FaMoneyBillWave,
   FaTable,
 } from "react-icons/fa";
+import { auth } from "../../firebase.init";
+import { signOut } from "firebase/auth";
 
 // Helper to get system color scheme
 function getSystemTheme() {
@@ -32,6 +34,7 @@ function getSystemTheme() {
 function Dashboard() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
 
   // Theme state: "light" or "dark"
   const [theme, setTheme] = useState(() => {
@@ -40,6 +43,18 @@ function Dashboard() {
     }
     return "dark";
   });
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        localStorage.removeItem('isAuthenticated');
+        navigate("/sign-in");
+      })
+      .catch((error) => {
+        console.error("Sign out error", error);
+      });
+  };
+
 
   // Apply theme to <html> element
   useEffect(() => {
@@ -245,10 +260,10 @@ function Dashboard() {
               )}
             </button>
 
-            {/* User dropdown with Sign in/Sign up */}
+            {/* User dropdown with Sign out */}
             <div className="relative group">
-              <NavLink
-                to="/sign-in"
+              <button
+                onClick={handleSignOut}
                 className={`hidden md:inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
                   theme === "dark"
                     ? "bg-slate-700/40 text-slate-200"
@@ -259,7 +274,7 @@ function Dashboard() {
                 tabIndex={0}
               >
                 <HiOutlineUser className="h-5 w-5" />
-              </NavLink>
+              </button>
             </div>
           </div>
         </div>

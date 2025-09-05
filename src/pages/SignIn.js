@@ -57,7 +57,9 @@ const SignIn = () => {
       // console.log("Signed in user:", result.user);
       setSuccess("Signed in successfully.");
       toast.success("Signed in successfully.", { position: "top-right" });
+      localStorage.setItem('isAuthenticated', 'true');
       handleReset();
+      navigate("/");
     } catch (err) {
       setError(mapFirebaseError(err.code, err.message));
       toast.error(mapFirebaseError(err.code, err.message), { position: "top-right" });

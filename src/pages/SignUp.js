@@ -93,11 +93,15 @@ const SignUp = () => {
       }
 
       toast.success(
-        "Registration successful!",
+        "Registration successful! Please check your email for verification.",
         { position: "top-right" }
       );
       // Reset form after successful registration
       handleReset();
+      // Redirect to sign-in page
+      setTimeout(() => {
+        window.location.href = "/sign-in";
+      }, 2000);
     } catch (err) {
       console.log("Firebase error:", err);
       toast.error(mapFirebaseError(err?.code || err?.message), { position: "top-right" });
