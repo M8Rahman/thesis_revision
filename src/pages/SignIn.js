@@ -1,37 +1,21 @@
 import React, { useRef, useState } from "react";
-import {
-  FaEye,
-  FaLock,
-  FaShieldAlt,
-  FaCube,
-  FaLink,
-  FaEnvelope,
-  FaEyeSlash,
-} from "react-icons/fa";
+import { FaEye, FaLock, FaShieldAlt, FaCube, FaLink, FaEnvelope, FaEyeSlash } from "react-icons/fa";
 import { MdOutlineArrowCircleRight } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
-// ✅ ADD: Firebase imports
 import { auth } from "../firebase.init";
-import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { Toaster, toast } from "react-hot-toast";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const emailRef = useRef(null);
-
-  // form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // ui state
-  const [error, setError] = useState("");      // ✅ ADD: show errors
-  const [success, setSuccess] = useState("");  // ✅ ADD: show success message
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  // Optional: map Firebase error codes to nicer messages
   const mapFirebaseError = (code, message) => {
     switch (code) {
       case "auth/invalid-email":
@@ -51,6 +35,17 @@ const SignIn = () => {
     }
   };
 
+  // Reset form fields
+  function handleReset() {
+    setEmail("");
+    setPassword("");
+    setError("");
+    setSuccess("");
+    if (emailRef.current) {
+      emailRef.current.value = "";
+    }
+  }
+
   // ✅ REAL submit handler with Firebase auth
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,11 +56,11 @@ const SignIn = () => {
       const result = await signInWithEmailAndPassword(auth, email, password);
       // console.log("Signed in user:", result.user);
       setSuccess("Signed in successfully.");
-      // OPTIONAL: redirect after sign-in
-      // navigate("/dashboard");
+      toast.success("Signed in successfully.", { position: "top-right" });
+      handleReset();
     } catch (err) {
-      // console.error(err);
       setError(mapFirebaseError(err.code, err.message));
+      toast.error(mapFirebaseError(err.code, err.message), { position: "top-right" });
     }
   };
 
@@ -77,19 +72,23 @@ const SignIn = () => {
     const currentEmail = emailRef.current?.value?.trim() || email.trim();
     if (!currentEmail) {
       setError("Please enter your email to reset password.");
+      toast.error("Please enter your email to reset password.", { position: "top-right" });
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, currentEmail);
       setSuccess("Password reset email sent. Please check your inbox.");
+      toast.success("Password reset email sent. Please check your inbox.", { position: "top-right" });
     } catch (err) {
       setError(mapFirebaseError(err.code, err.message));
+      toast.error(mapFirebaseError(err.code, err.message), { position: "top-right" });
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Toaster position="top-right" reverseOrder={false} />
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-4 h-4 bg-cyan-400 rounded-full animate-pulse"></div>
