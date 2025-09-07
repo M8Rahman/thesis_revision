@@ -174,11 +174,7 @@ function FundsTransfer() {
 
           <div className="relative mb-2">
             <span
-              className={`
-                pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-base
-                text-cyan-300/80 dark:text-cyan-300/80
-                light:text-emerald-600/80
-              `}
+              className=" pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-base text-cyan-300/80 dark:text-cyan-300/80 light:text-emerald-600/80"
             >
               ৳
             </span>
@@ -212,11 +208,8 @@ function FundsTransfer() {
 
         {/* Divider */}
         <div
-          className={`
-            border-t pt-4
-            border-slate-700/50 dark:border-slate-700/50
-            light:border-emerald-200
-          `}
+          className="border-t pt-4 border-slate-700/50 dark:border-slate-700/50 light:border-emerald-200"
+          
         />
 
         {/* Actions */}
@@ -224,13 +217,13 @@ function FundsTransfer() {
           <button
             type="button"
             onClick={handleTransferFunds}
-            className={`
+            className="
               inline-flex items-center rounded-lg px-5 py-2.5 font-semibold transition-all duration-200
               bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white
               focus:outline-none focus:ring-2 focus:ring-cyan-400/50 shadow-lg shadow-cyan-500/10
               dark:bg-gradient-to-r dark:from-cyan-500 dark:to-purple-600 dark:hover:from-cyan-400 dark:hover:to-purple-500 dark:text-white dark:focus:ring-cyan-400/50
               light:bg-gradient-to-r light:from-emerald-400 light:to-emerald-600 light:hover:from-emerald-300 light:hover:to-emerald-500 light:text-emerald-900 light:focus:ring-emerald-300/50
-            `}
+            "
           >
             Save
           </button>
