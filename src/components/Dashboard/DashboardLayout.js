@@ -76,7 +76,7 @@ function DashboardLayout({ children }) {
   };
 
   const links = [
-    { path: "/home", label: "Dashboard", icon: <FaHome className="h-5 w-5" /> },
+    { path: "/home", label: "Home", icon: <FaHome className="h-5 w-5" /> },
     {
       path: "/project-creation",
       label: "Project Creation",
@@ -84,12 +84,12 @@ function DashboardLayout({ children }) {
     },
     {
       path: "/city-corporation",
-      label: "City Corporation",
+      label: "Set City Crop",
       icon: <FaCity className="h-5 w-5" />,
     },
     {
       path: "/builder",
-      label: "Builder",
+      label: "Set Builder",
       icon: <FaHardHat className="h-5 w-5" />,
     },
     {

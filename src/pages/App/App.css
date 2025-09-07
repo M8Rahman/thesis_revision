@@ -1,37 +1,27 @@
-.logo {
-  height: 300px;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-  /* justify-content: auto; */
-  /* justify-items: auto; */
-  margin: auto;
-  margin-top: 130px;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #a855f7 #1f2937;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 12px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+*::-webkit-scrollbar-track {
+  background: #1f2937;
 }
 
-/* *{
-  background-image: url('./images/bg.jpg');
-  overflow: hidden;
-  background-size: cover;
-} */
+*::-webkit-scrollbar-thumb {
+  background-color: #a855f7;
+  border-radius: 10px;
+  border: 3px solid #1f2937;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0f172a;
+}
