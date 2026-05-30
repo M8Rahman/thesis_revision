@@ -1,166 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
-import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
+// src/components/ProjectCreation.js
+// REVISED — uses ProjectRegistry.createProject() + useWeb3 hook.
+// Finance Ministry role required on-chain.
 
-function ProjectCreation() {
-  const [web3, setWeb3] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const [contract, setContract] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+import React, { useState } from "react";
+import { useWeb3 } from "../hooks/useWeb3";
+import toast from "react-hot-toast";
 
-  const [projectDetails, setProjectDetails] = useState({
-    id: '',
-    name: '',
-    area: '',
-    budget: 0,
-    treasury: '',
+export default function ProjectCreation() {
+  const { accounts, isConnected, registry } = useWeb3();
+
+  const [form, setForm] = useState({
+    id: "", name: "", area: "", budget: "", treasury: "",
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const initWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
-        try {
-          await window.ethereum.enable();
-          setWeb3(web3Instance);
-          const accounts = await web3Instance.eth.getAccounts();
-          setAccounts(accounts);
-          setIsConnected(true); // Set connection state to true when connected
-        } catch (error) {
-          console.error('User denied account access:', error);
-        }
-      } else {
-        const web3Instance = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
-        setWeb3(web3Instance);
-        const accounts = await web3Instance.eth.getAccounts();
-        setAccounts(accounts);
-        setIsConnected(true); // Set connection state to true when connected
-      }
-    };
+  const handleChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-    initWeb3();
-  }, []);
-
-  useEffect(() => {
-    if (web3) {
-      const contractInstance = new web3.eth.Contract(YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS);
-      setContract(contractInstance);
+  const handleSubmit = async () => {
+    const { id, name, area, budget, treasury } = form;
+    if (!id || !name || !area || !budget || !treasury) {
+      toast.error("Please fill in all fields.");
+      return;
     }
-  }, [web3]);
-
-  const handleInputChange = (e) => {
-    setProjectDetails({ ...projectDetails, [e.target.name]: e.target.value });
-  };
-
-  const handleAllocateBudget = async () => {
+    if (!isConnected || !registry) {
+      toast.error("Connect MetaMask first.");
+      return;
+    }
+    setSubmitting(true);
     try {
-      if (!isConnected) {
-        console.error('Not connected to MetaMask. Please connect first.');
-        return;
-      }
-
-      if (!contract) {
-        console.error('Contract instance not available. Please wait for the contract to initialize.');
-        // Optionally, you could initiate the contract initialization process here
-        return;
-      }
-
-      if (!projectDetails.budget || !projectDetails.id || !projectDetails.name || !projectDetails.area || !projectDetails.treasury) {
-        console.error('Please fill in all the required fields.');
-        return;
-      }
-
-      await contract.methods.allocateBudget(
-        projectDetails.budget,
-        projectDetails.id,
-        projectDetails.name,
-        projectDetails.area,
-        projectDetails.treasury
-      ).send({ from: accounts[0] });
-
-      console.log('Budget allocated successfully!');
-    } catch (error) {
-      console.error('Error allocating budget:', error);
+      // budget is stored as wei; front-end sends ETH string, converts here
+      const budgetWei = BigInt(Math.round(parseFloat(budget) * 1e18)).toString();
+      await registry.methods
+        .createProject(id, name, area, budgetWei, treasury)
+        .send({ from: accounts[0] });
+      toast.success("Project created successfully!");
+      setForm({ id: "", name: "", area: "", budget: "", treasury: "" });
+    } catch (err) {
+      toast.error(err.message?.slice(0, 100) || "Transaction failed.");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const inputCls = `
+    w-full rounded-lg border px-4 py-3 transition-all duration-200
+    bg-slate-900/60 text-white placeholder-cyan-200/60 border-cyan-400/60
+    focus:outline-none focus:ring-2 focus:ring-cyan-400/40
+  `;
+  const labelCls = "text-white text-base block mb-2";
 
   return (
-    <div>
-      {!isConnected ? (
-        <button className="shadow__btn ml-16" type="button" onClick={() => setIsConnected(true)}>
-    		  Connect to MetaMask
-		    </button>
-      ) : (
+    <div className="m-auto w-full max-w-xl rounded-b-3xl border shadow-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-slate-700/50">
+      {/* Header */}
+      <div className="border-b px-8 py-6 bg-gradient-to-r from-cyan-500/10 to-purple-600/10 border-slate-700/50 space-y-1">
+        <h2 className="text-white text-2xl font-semibold">Create / Allocate Project Budget</h2>
+        <p className="text-white/70 text-sm">Finance Ministry only. Creates a new project on-chain via ProjectRegistry.</p>
+      </div>
 
-        <div class="card1 m-auto">
-		<form>
-        <div className='ml-24 pb-2'>
-		<label className='flex'>
-          <div>
-		  <input className="project bg-transparent ml-20" type="text"
-            name="id"
-            placeholder="Project ID"
-            value={projectDetails.id}
-            onChange={handleInputChange} />
-		  <hr className='ml-20 mt-1' />
-		  </div>
-        </label>
-		</div>
-        <label className='ml-24 flex pb-2'>
-          <div>
-			<input className="bg-transparent ml-20" type="text"
-            name="name"
-            placeholder="Project Name"
-            value={projectDetails.name}
-            onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		  </div>
-        </label>
-        <label className='ml-24 flex pb-2'>
-          <div>
-			<input className="bg-transparent ml-20"
-            type="text"
-            name="area"
-            placeholder="Project Area"
-            value={projectDetails.area}
-            onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		  </div>
-        </label>
-        <label className='ml-24 flex pb-2'>
-          <div>
-			<input className="bg-transparent ml-20" 
-      type="number"
-      name="budget"
-      placeholder="Project Budget"
-      value={projectDetails.budget}
-      onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		  </div>
-        </label>
-        <label className='ml-24 flex'>
-          <div>
-			<input className="bg-transparent ml-20"
-            type="text"
-            name="treasury"
-            placeholder="Treasury"
-            value={projectDetails.treasury}
-            onChange={handleInputChange} />
-			<hr className='ml-20 mt-1'/>
-		  </div>
-        </label>
-        <br />
+      {/* Form */}
+      <div className="p-8 space-y-5">
+        {[
+          { label: "Project ID",   name: "id",   placeholder: "PRJ-2025-0001" },
+          { label: "Project Name", name: "name", placeholder: "Road Construction – Dhaka North" },
+          { label: "Project Area", name: "area", placeholder: "Uttara, Dhaka" },
+        ].map(({ label, name, placeholder }) => (
+          <div key={name}>
+            <label className={labelCls}>{label}</label>
+            <input className={inputCls} name={name} placeholder={placeholder}
+              value={form[name]} onChange={handleChange} autoComplete="off" />
+          </div>
+        ))}
 
-		<div className='flex justify-center ml-16'>
-		<button className="shadow__btn ml-16" type="button" onClick={handleAllocateBudget}>
-    		Allocate Budget
-		</button >
-		</div>
-      </form>
-	</div>
-      )}
+        <div>
+          <label className={labelCls}>Budget (ETH)</label>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-3 flex items-center text-cyan-300/80 pointer-events-none">Ξ</span>
+            <input className={inputCls + " pl-8"} name="budget" type="number" placeholder="e.g. 10"
+              value={form.budget} onChange={handleChange} />
+          </div>
+          <p className="text-xs text-white/50 mt-1">Enter amount in ETH. Converted to wei on submission.</p>
+        </div>
+
+        <div>
+          <label className={labelCls}>Treasury Address</label>
+          <input className={inputCls} name="treasury" placeholder="0x…"
+            value={form.treasury} onChange={handleChange} autoComplete="off" />
+          <p className="text-xs text-white/50 mt-1">
+            Off-chain process: Treasury account is identified by the Finance Ministry and registered here on-chain.
+          </p>
+        </div>
+
+        <div className="border-t border-slate-700/50 pt-4" />
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="inline-flex items-center rounded-lg px-6 py-2.5 font-semibold bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white disabled:opacity-50 transition-all"
+          >
+            {submitting ? "Creating…" : "Create Project"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
-export default ProjectCreation;

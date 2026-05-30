@@ -1,202 +1,135 @@
-import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
-import { YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS } from '../config';
+// src/components/DataDisplay.js
+// REVISED — reads from TransparencyPortal.getAllProjectSummaries()
 
+import React, { useState, useEffect, useCallback } from "react";
+import Web3 from "web3";
+import { TRANSPARENCY_PORTAL_ABI, CONTRACT_ADDRESSES } from "../config";
 
-function DataDisplay() {
-  const [web3, setWeb3] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const [contract, setContract] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [projectData, setProjectData] = useState([]);
-  // New state variables for search and sorting
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortCriteria, setSortCriteria] = useState(''); // 'budget', 'installmentNumber', 'fundsSentToCityCorporation', 'fundsSentToBuilder'
+const weiToEth = (wei) =>
+  wei ? parseFloat(Web3.utils.fromWei(String(wei), "ether")).toFixed(4) : "0.0000";
 
-  useEffect(() => {
-    const initWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
-        try {
-          await window.ethereum.enable();
-          setWeb3(web3Instance);
-          const accounts = await web3Instance.eth.getAccounts();
-          setAccounts(accounts);
-          setIsConnected(true);
-        } catch (error) {
-          console.error('User denied account access:', error);
-        }
-      } else {
-        const web3Instance = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
-        setWeb3(web3Instance);
-        const accounts = await web3Instance.eth.getAccounts();
-        setAccounts(accounts);
-        setIsConnected(true);
-      }
-    };
-
-    initWeb3();
-  }, []);
-
-  useEffect(() => {
-    if (web3) {
-      const contractInstance = new web3.eth.Contract(YOUR_CONTRACT_ABI, YOUR_CONTRACT_ADDRESS);
-      setContract(contractInstance);
-    }
-  }, [web3]);
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleSortChange = (criteria) => {
-    setSortCriteria(criteria);
-  };
-
-  const handleSort = (data) => {
-    if (sortCriteria === '') {
-      return data;
-    }
-
-    return data.slice().sort((a, b) => {
-      const aValue = a[sortCriteria];
-      const bValue = b[sortCriteria];
-
-      if (sortCriteria === 'budget' || sortCriteria === 'installmentNumber' || sortCriteria === 'fundsSentToCityCorporation' || sortCriteria === 'fundsSentToBuilder') {
-        return aValue - bValue;
-      } else {
-        return aValue.localeCompare(bValue);
-      }
-    });
-  };
-
-  const filteredAndSortedData = handleSort(
-    projectData.filter((project) => {
-      const searchTermLowerCase = searchTerm.toLowerCase();
-      return (
-        project.projectID.toLowerCase().includes(searchTermLowerCase) ||
-        project.financeMinistry.toLowerCase().includes(searchTermLowerCase) ||
-        project.treasury.toLowerCase().includes(searchTermLowerCase) ||
-        project.cityCorporation.toLowerCase().includes(searchTermLowerCase) ||
-        project.builder.toLowerCase().includes(searchTermLowerCase) ||
-        project.projectName.toLowerCase().includes(searchTermLowerCase) ||
-        project.projectArea.toLowerCase().includes(searchTermLowerCase) ||
-        project.allocatedBudget.includes(searchTerm) ||
-        project.fundsSentToCityCorporation.includes(searchTerm) ||
-        project.fundsSentToBuilder.includes(searchTerm) ||
-        project.installmentNumber.includes(searchTerm)
-      );
-    })
-  );
-
-
-  const handleGetAllProjectDetails = async () => {
-    try {
-      if (!isConnected) {
-        console.error('Not connected to MetaMask. Please connect first.');
-        return;
-      }
-
-      if (!contract) {
-        console.error('Contract instance not available. Please wait for the contract to initialize.');
-        return;
-      }
-
-      const result = await contract.methods.getAllProjectDetails().call({ from: accounts[0] });
-
-      // Map the result directly to ProjectSummary
-      const projectDetails = result.map((project) => ({
-        projectID: project.projectID,
-        financeMinistry: project.financeMinistry,
-        treasury: project.treasury,
-        cityCorporation: project.cityCorporation,
-        builder: project.builder,
-        projectName: project.projectName,
-        projectArea: project.projectArea,
-        allocatedBudget: project.allocatedBudget.toString(),
-        fundsSentToCityCorporation: project.fundsSentToCityCorporation.toString(),
-        fundsSentToBuilder: project.fundsSentToBuilder.toString(),
-        installmentNumber: project.installmentNumber.toString(),
-      }));
-
-      setProjectData(projectDetails);
-    } catch (error) {
-      console.error('Error fetching project details:', error);
-    }
-  };
-
+function ProgressBar({ value }) {
+  const pct = Math.min(100, Math.max(0, Number(value)));
   return (
-    <div>
-      {/* <h1 className="text-4xl mb-5 ml-36">Data Display</h1> */}
-      {isConnected ? (
-        <>
-          {/* <button
-            className="text-black hover:text-white bg-green-400 p-1 hover:bg-green-800 rounded-xl mt-8 mb-4 h-10 w-[200px] ml-48 font-bold text-[16px]"
-            onClick={handleGetAllProjectDetails}
-          >
-            All Project Details
-          </button> */}
-          
-          <button className="shadow__btn ml-16" type="button" onClick={handleGetAllProjectDetails}>
-              All Project Details
-          </button >
-
-          {/* <table className="table-auto mt-4 border-separate border-spacing-2 border border-slate-50"> */}
-          <table className="table-auto mt-4 border-separate border-spacing-2 border border-slate-50 w-full">
-            <thead>
-            <tr>
-              <th className="border border-slate-800 bg-sky-400 px-4 py-2">Project ID</th>
-              <th className="border border-slate-800 bg-white px-4 py-2" colSpan="4">Ethereum Wallet Addresses</th>
-              <th className="border border-slate-800 bg-sky-400 px-4 py-2">Project Name</th>
-              <th className="border border-slate-800 bg-white px-4 py-2">Project Area</th>
-              <th className="border border-slate-800 bg-sky-400 px-4 py-2">Allocated Budget</th>
-              <th className="border border-slate-800 bg-white px-4 py-2">Funds Sent to City Corporation</th>
-              <th className="border border-slate-800 bg-sky-400 px-4 py-2">Funds Sent to Builder</th>
-              <th className="border border-slate-800 bg-white px-4 py-2">Installment Number</th>
-            </tr>
-            </thead>
-            <tbody>
-              {projectData.map((project) => (
-                <tr key={project.projectID}>
-                  <td className="border border-slate-800 bg-white px-4 py-2">{project.projectID}</td>
-                  {/* <td className="border border-slate-800 px-4 py-2" colSpan="4">
-                    <div style={{ backgroundColor: 'white' }} className="truncate">FinanceM: {project.financeMinistry}</div>
-                    <div style={{ backgroundColor: 'sky' }} className="truncate">Treaury: {project.treasury}</div>
-                    <div style={{ backgroundColor: 'white' }} className="truncate">CityCorp: {project.cityCorporation}</div>
-                    <div style={{ backgroundColor: 'sky' }} className="truncate">Builder: {project.builder}</div>
-                  </td> */}
-                  <td className="border border-slate-800 bg-gray-200 px-4 py-2" colSpan="4">
-                    <div style={{ backgroundColor:'#f0f0f0' }}>
-                      <strong>FinanceM:</strong> {project.financeMinistry}
-                    </div>
-                    <div style={{ backgroundColor:'#ffffff' }}>
-                      <strong>Treasury:</strong> {project.treasury}
-                    </div>
-                    <div style={{ backgroundColor:'#f0f0f0' }}>
-                      <strong>CityCorp:</strong> {project.cityCorporation}
-                    </div>
-                    <div style={{ backgroundColor:'#ffffff' }}>
-                      <strong>Builder:</strong> {project.builder}
-                    </div>
-                  </td>
-                  <td className="border border-slate-800 bg-sky-400 px-4 py-2" style={{ width: '120px' }}>{project.projectName}</td>
-                  <td className="border border-slate-800 bg-white px-4 py-2" style={{ width: '120px' }}>{project.projectArea}</td>
-                  <td className="border border-slate-800 bg-sky-400 px-4 py-2" style={{ width: '120px' }}>{project.allocatedBudget}</td>
-                  <td className="border border-slate-800 bg-white px-4 py-2" style={{ width: '120px' }}>{project.fundsSentToCityCorporation}</td>
-                  <td className="border border-slate-800 bg-sky-400 px-4 py-2" style={{ width: '120px' }}>{project.fundsSentToBuilder}</td>
-                  <td className="border border-slate-800 bg-white px-4 py-2" style={{ width: '120px' }}>{project.installmentNumber}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          
-      
-        </>
-      ) : (
-        <p>Please connect to MetaMask.</p>
-      )}
+    <div className="w-full bg-slate-700 rounded-full h-2">
+      <div
+        className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
 
-export default DataDisplay;
+export default function DataDisplay() {
+  const [portal, setPortal]     = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [searchTerm, setSearch] = useState("");
+  const [sortKey, setSortKey]   = useState("");
+  const [sortDir, setSortDir]   = useState("asc");
+
+  useEffect(() => {
+    const w3 = new Web3(
+      window.ethereum || new Web3.providers.HttpProvider("http://localhost:7545")
+    );
+    setPortal(new w3.eth.Contract(TRANSPARENCY_PORTAL_ABI, CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL));
+  }, []);
+
+  const fetchProjects = useCallback(async () => {
+    if (!portal) return;
+    setLoading(true);
+    try {
+      const data = await portal.methods.getAllProjectSummaries().call();
+      setProjects(data);
+    } catch (err) {
+      console.error("Failed to fetch projects:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [portal]);
+
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+
+  const handleSort = (key) => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const filtered = projects
+    .filter((p) => {
+      const s = searchTerm.toLowerCase();
+      return p.projectID.toLowerCase().includes(s) || p.projectName.toLowerCase().includes(s);
+    })
+    .sort((a, b) => {
+      if (!sortKey) return 0;
+      const isStr = sortKey === "projectID" || sortKey === "projectName";
+      const aV = isStr ? a[sortKey].toLowerCase() : Number(a[sortKey]);
+      const bV = isStr ? b[sortKey].toLowerCase() : Number(b[sortKey]);
+      return sortDir === "asc" ? (aV > bV ? 1 : -1) : (aV < bV ? 1 : -1);
+    });
+
+  const SortIcon = ({ col }) =>
+    sortKey !== col
+      ? <span className="text-slate-600 ml-1">↕</span>
+      : <span className="text-cyan-400 ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+
+  const thCls = "px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white select-none";
+
+  return (
+    <div className="w-full space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-white text-2xl font-semibold">Project Data Overview</h2>
+          <p className="text-slate-400 text-sm mt-1">Live data from TransparencyPortal smart contract</p>
+        </div>
+        <button onClick={fetchProjects} disabled={loading}
+          className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm font-semibold disabled:opacity-50">
+          {loading ? "Refreshing…" : "↻ Refresh"}
+        </button>
+      </div>
+
+      <input type="text" placeholder="Search by Project ID or Name…" value={searchTerm}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full max-w-md rounded-lg border border-slate-600 bg-slate-800/60 px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 text-sm" />
+
+      <div className="overflow-x-auto rounded-2xl border border-slate-700/60">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-800/80">
+            <tr>
+              <th className={thCls} onClick={() => handleSort("projectID")}>Project ID <SortIcon col="projectID" /></th>
+              <th className={thCls} onClick={() => handleSort("projectName")}>Name <SortIcon col="projectName" /></th>
+              <th className={thCls} onClick={() => handleSort("allocatedBudget")}>Budget (ETH) <SortIcon col="allocatedBudget" /></th>
+              <th className={thCls} onClick={() => handleSort("totalDisbursed")}>Disbursed (ETH) <SortIcon col="totalDisbursed" /></th>
+              <th className={thCls} onClick={() => handleSort("totalUtilized")}>Utilised (ETH) <SortIcon col="totalUtilized" /></th>
+              <th className={thCls} onClick={() => handleSort("utilizationRate")}>Utilisation % <SortIcon col="utilizationRate" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Loading…</td></tr>}
+            {!loading && filtered.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                No projects found. {projects.length === 0 && "Contract may not be deployed yet."}
+              </td></tr>
+            )}
+            {!loading && filtered.map((p, i) => (
+              <tr key={i} className="border-t border-slate-700/40 hover:bg-slate-800/40 transition-colors">
+                <td className="px-4 py-3 font-mono text-cyan-400 text-xs">{p.projectID}</td>
+                <td className="px-4 py-3 text-white font-medium">{p.projectName}</td>
+                <td className="px-4 py-3 text-slate-300">{weiToEth(p.allocatedBudget)}</td>
+                <td className="px-4 py-3 text-slate-300">{weiToEth(p.totalDisbursed)}</td>
+                <td className="px-4 py-3 text-slate-300">{weiToEth(p.totalUtilized)}</td>
+                <td className="px-4 py-3 w-40">
+                  <div className="flex items-center gap-2">
+                    <ProgressBar value={p.utilizationRate} />
+                    <span className="text-slate-300 text-xs w-8 text-right">{String(p.utilizationRate)}%</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-slate-500 text-xs">Showing {filtered.length} of {projects.length} projects · Data from on-chain TransparencyPortal</p>
+    </div>
+  );
+}
