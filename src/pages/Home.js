@@ -1,4 +1,4 @@
-import block from "..public/images/blockchain.png";
+import block from "../images/blockchain.png";
 import React, { useEffect, useMemo, useState } from "react";
 import TransactionFlowSteps from "../components/Dashboard/TransactionFlowSteps";
 import BlockchainVisualization from "../components/Dashboard/BlockchainVisualization";

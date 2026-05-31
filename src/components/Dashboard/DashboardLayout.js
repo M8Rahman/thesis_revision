@@ -30,14 +30,24 @@ const ROLES = {
   CITY_CORPORATION: "0x367f0821df26b91176b6b77dfde1bfa6935b62b1bdf62b1df62b1df62b1df62b", // keccak256("CITY_CORPORATION_ROLE")
 };
 
+// const ALL_NAV_ITEMS = [
+//   { path: "/dashboard", label: "Dashboard Home", icon: <FaHome />, roles: [ROLES.ANY] },
+//   { path: "/dashboard/create-project", label: "Create Project", icon: <FaProjectDiagram />, roles: [ROLES.FINANCE_MINISTRY] },
+//   { path: "/dashboard/assign-cc", label: "Assign City Corp", icon: <FaCity />, roles: [ROLES.FINANCE_MINISTRY] },
+//   { path: "/dashboard/assign-builder", label: "Assign Builder", icon: <FaHardHat />, roles: [ROLES.FINANCE_MINISTRY] },
+//   { path: "/dashboard/release-installment", label: "Release Installment", icon: <FaMoneyCheckAlt />, roles: [ROLES.TREASURY] },
+//   { path: "/dashboard/transfer-funds", label: "Transfer to Builder", icon: <FaMoneyBillWave />, roles: [ROLES.CITY_CORPORATION] },
+//   { path: "/dashboard/data-display", label: "Project Registry Data", icon: <FaTable />, roles: [ROLES.ANY] },
+// ];
+
 const ALL_NAV_ITEMS = [
-  { path: "/dashboard", label: "Dashboard Home", icon: <FaHome />, roles: [ROLES.ANY] },
-  { path: "/dashboard/create-project", label: "Create Project", icon: <FaProjectDiagram />, roles: [ROLES.FINANCE_MINISTRY] },
-  { path: "/dashboard/assign-cc", label: "Assign City Corp", icon: <FaCity />, roles: [ROLES.FINANCE_MINISTRY] },
-  { path: "/dashboard/assign-builder", label: "Assign Builder", icon: <FaHardHat />, roles: [ROLES.FINANCE_MINISTRY] },
-  { path: "/dashboard/release-installment", label: "Release Installment", icon: <FaMoneyCheckAlt />, roles: [ROLES.TREASURY] },
-  { path: "/dashboard/transfer-funds", label: "Transfer to Builder", icon: <FaMoneyBillWave />, roles: [ROLES.CITY_CORPORATION] },
-  { path: "/dashboard/data-display", label: "Project Registry Data", icon: <FaTable />, roles: [ROLES.ANY] },
+  { path: "/dashboard", label: "Dashboard Home", icon: <FaHome />, roles: ["ANY"] },
+  { path: "/create-project", label: "Create Project", icon: <FaProjectDiagram />, roles: ["finance_ministry", "admin"] },
+  { path: "/assign-cc", label: "Assign City Corp", icon: <FaCity />, roles: ["finance_ministry", "admin"] },
+  { path: "/assign-builder", label: "Assign Builder", icon: <FaHardHat />, roles: ["finance_ministry", "admin"] },
+  { path: "/release-installment", label: "Release Installment", icon: <FaMoneyCheckAlt />, roles: ["treasury", "admin"] },
+  { path: "/transfer-funds", label: "Transfer to Builder", icon: <FaMoneyBillWave />, roles: ["city_corporation", "admin"] },
+  { path: "/data-display", label: "Project Registry Data", icon: <FaTable />, roles: ["ANY"] },
 ];
 
 export default function DashboardLayout({ children }) {
