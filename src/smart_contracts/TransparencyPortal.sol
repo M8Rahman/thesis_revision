@@ -90,18 +90,8 @@ contract TransparencyPortal {
         external view
         returns (ProjectStatus memory)
     {
-        (
-            string memory pid,
-            string memory name,
-            string memory area,
-            ,
-            ,
-            ,
-            address cc,
-            address builder,
-            uint256 createdAt,
-            bool isActive
-        ) = _loadProject(_id);
+        (string memory pid, string memory name, string memory area, ) = _loadProjectInfo(_id);
+        (,, address cc, address builder, uint256 createdAt, bool isActive) = _loadProjectActors(_id);
 
         string memory phase = _derivePhase(cc, builder);
 
@@ -170,18 +160,7 @@ contract TransparencyPortal {
         external view
         returns (ProjectFinancialSummary memory)
     {
-        (
-            string memory pid,
-            string memory name,
-            ,
-            uint256 budget,
-            ,
-            ,
-            ,
-            ,
-            ,
-
-        ) = _loadProject(_id);
+        (string memory pid, string memory name, , uint256 budget) = _loadProjectInfo(_id);
 
         (uint256 toCC, uint256 toBuilder, ) = fundManager.getFundData(_id);
 
@@ -204,18 +183,8 @@ contract TransparencyPortal {
         external view
         returns (ProjectParticipants memory)
     {
-        (
-            string memory pid,
-            ,
-            ,
-            ,
-            address fm,
-            address treasury,
-            address cc,
-            address builder,
-            ,
-
-        ) = _loadProject(_id);
+        (string memory pid,,,) = _loadProjectInfo(_id);
+        (address fm, address treasury, address cc, address builder,,) = _loadProjectActors(_id);
 
         return ProjectParticipants({
             projectID:      pid,
@@ -242,8 +211,8 @@ contract TransparencyPortal {
             uint256 budget    = registry.getProjectBudget(pid);
             (uint256 toCC, uint256 toBuilder, ) = fundManager.getFundData(pid);
 
-            // Load name from registry struct
-            (,string memory name,,,,,,,, ) = _loadProject(pid);
+            // Load name from registry
+            (, string memory name,,) = _loadProjectInfo(pid);
 
             uint256 utilRate = budget > 0 ? (toBuilder * 100) / budget : 0;
 
@@ -263,14 +232,36 @@ contract TransparencyPortal {
     //  Internal helpers
     // ─────────────────────────────────────────────────
 
-    /// @dev Loads all fields from registry to avoid repeated external calls.
-    function _loadProject(string memory _id)
+    /// @dev Returns the scalar/text fields of a project to avoid stack-too-deep.
+    function _loadProjectInfo(string memory _id)
         internal view
         returns (
             string memory projectID,
             string memory projectName,
             string memory projectArea,
-            uint256 allocatedBudget,
+            uint256 allocatedBudget
+        )
+    {
+        require(registry.projectExists(_id), "Project not found");
+        (
+            string memory _pid,
+            string memory _name,
+            string memory _area,
+            uint256 _budget,
+            ,
+            ,
+            ,
+            ,
+            ,
+
+        ) = registry.projects(_id);
+        return (_pid, _name, _area, _budget);
+    }
+
+    /// @dev Returns the address/timestamp fields of a project to avoid stack-too-deep.
+    function _loadProjectActors(string memory _id)
+        internal view
+        returns (
             address financeMinistry,
             address treasury,
             address cityCorporation,
@@ -280,19 +271,19 @@ contract TransparencyPortal {
         )
     {
         require(registry.projectExists(_id), "Project not found");
-        ProjectRegistry.ProjectDetails memory p = registry.projects(_id);
-        return (
-            p.projectID,
-            p.projectName,
-            p.projectArea,
-            p.allocatedBudget,
-            p.financeMinistry,
-            p.treasury,
-            p.cityCorporation,
-            p.builder,
-            p.createdAt,
-            p.isActive
-        );
+        (
+            ,
+            ,
+            ,
+            ,
+            address _fm,
+            address _treasury,
+            address _cc,
+            address _builder,
+            uint256 _createdAt,
+            bool    _isActive
+        ) = registry.projects(_id);
+        return (_fm, _treasury, _cc, _builder, _createdAt, _isActive);
     }
 
     function _derivePhase(address cc, address builder)

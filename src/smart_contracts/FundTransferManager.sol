@@ -19,7 +19,6 @@ contract FundTransferManager is AccessControl {
     // ─────────────────────────────────────────────────
     bytes32 public constant TREASURY_ROLE         = keccak256("TREASURY_ROLE");
     bytes32 public constant CITY_CORPORATION_ROLE = keccak256("CITY_CORPORATION_ROLE");
-
     uint256 public constant MAX_INSTALLMENTS = 3;
     uint256 public constant VERSION          = 2;
     address public successorContract;
