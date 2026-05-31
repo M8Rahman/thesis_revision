@@ -1,10 +1,13 @@
 // src/pages/CityCorporation.js
-// REVISED — calls ProjectRegistry.assignCityCorporation()
-// Finance Ministry role required.
+// ─────────────────────────────────────────────────────────────────────────────
+//  FIXED for Web3 v4
+//  Changes: nested error message extraction; address guard; wallet display.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from "react";
 import { useWeb3 } from "../hooks/useWeb3";
 import toast from "react-hot-toast";
+import { CONTRACT_ADDRESSES } from "../config";
 
 export default function CityCorporation() {
   const { accounts, isConnected, registry } = useWeb3();
@@ -13,48 +16,90 @@ export default function CityCorporation() {
   const [submitting, setSubmitting] = useState(false);
 
   const handleAssign = async () => {
-    if (!projectID || !ccAddress) { toast.error("Fill in all fields."); return; }
-    if (!isConnected || !registry)  { toast.error("Connect MetaMask."); return; }
+    if (!projectID || !ccAddress) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (!isConnected || !registry) {
+      toast.error("MetaMask not connected.");
+      return;
+    }
+    if (CONTRACT_ADDRESSES.PROJECT_REGISTRY === "YOUR_PROJECT_REGISTRY_ADDRESS") {
+      toast.error("Contract not deployed yet. Update config.js.");
+      return;
+    }
+    if (!ccAddress.startsWith("0x") || ccAddress.length !== 42) {
+      toast.error("City Corporation address is not valid.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await registry.methods
         .assignCityCorporation(projectID, ccAddress)
         .send({ from: accounts[0] });
       toast.success("City Corporation assigned successfully!");
-      setProjectID(""); setCCAddress("");
+      setProjectID("");
+      setCCAddress("");
     } catch (err) {
-      toast.error(err.message?.slice(0, 120) || "Transaction failed.");
+      const msg = err?.cause?.message || err?.message || "Transaction failed.";
+      toast.error(msg.slice(0, 150));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const inputCls = "w-full rounded-lg border px-4 py-3 bg-slate-900/60 text-white placeholder-cyan-200/60 border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/40";
+  const inputCls =
+    "w-full rounded-lg border px-4 py-3 bg-slate-900/60 text-white placeholder-cyan-200/60 border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/40";
 
   return (
     <div className="m-auto w-full max-w-xl rounded-b-3xl border shadow-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-slate-700/50">
       <div className="border-b px-8 py-6 bg-gradient-to-r from-cyan-500/10 to-purple-600/10 border-slate-700/50 space-y-1">
         <h2 className="text-white text-2xl font-semibold">Assign City Corporation</h2>
-        <p className="text-white/70 text-sm">Finance Ministry only. Registers the City Corporation on-chain.</p>
+        <p className="text-white/70 text-sm">
+          Finance Ministry only — registers the City Corporation on-chain.
+        </p>
       </div>
       <div className="p-8 space-y-5">
         <div>
           <label className="text-white text-base block mb-2">Project ID</label>
-          <input className={inputCls} placeholder="PRJ-2025-0001" value={projectID}
-            onChange={(e) => setProjectID(e.target.value)} autoComplete="off" />
+          <input
+            className={inputCls}
+            placeholder="PRJ-2025-0001"
+            value={projectID}
+            onChange={(e) => setProjectID(e.target.value)}
+            autoComplete="off"
+          />
         </div>
         <div>
           <label className="text-white text-base block mb-2">City Corporation Address</label>
-          <input className={inputCls} placeholder="0x…" value={ccAddress}
-            onChange={(e) => setCCAddress(e.target.value)} autoComplete="off" />
+          <input
+            className={inputCls}
+            placeholder="0x…"
+            value={ccAddress}
+            onChange={(e) => setCCAddress(e.target.value)}
+            autoComplete="off"
+          />
           <p className="text-xs text-white/50 mt-1">
-            Off-chain: the City Corporation is selected via tender. This call records that decision immutably on-chain.
+            Off-chain tender selects the CC. This call records the result immutably on-chain.
+            Paste Account 2 address from Ganache/MetaMask.
           </p>
         </div>
+
         <div className="border-t border-slate-700/50 pt-4" />
+
+        {accounts[0] && (
+          <p className="text-xs text-cyan-400/70">
+            Sending from: {accounts[0].slice(0, 6)}…{accounts[0].slice(-4)} (must be Finance Ministry)
+          </p>
+        )}
+
         <div className="flex justify-end">
-          <button onClick={handleAssign} disabled={submitting}
-            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-semibold disabled:opacity-50">
+          <button
+            onClick={handleAssign}
+            disabled={submitting}
+            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-semibold disabled:opacity-50"
+          >
             {submitting ? "Assigning…" : "Assign City Corporation"}
           </button>
         </div>

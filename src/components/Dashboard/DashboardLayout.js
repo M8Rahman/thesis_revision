@@ -7,7 +7,11 @@
 // Public link to /transparency added in header.
 
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { NavLink, useNavigate, Link } from "react-router-dom";
+=======
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+>>>>>>> ffaddf21a4f1ea4582dabd4219f9d544581afc45
 import {
   HiBuildingLibrary, HiOutlineUser, HiChevronLeft, HiChevronRight, HiSun, HiMoon,
 } from "react-icons/hi2";
@@ -58,6 +62,7 @@ export default function DashboardLayout({ children }) {
     navigate("/sign-in");
   };
 
+<<<<<<< HEAD
   const roleLabel = {
     admin:            "Admin",
     finance_ministry: "Finance Ministry",
@@ -66,6 +71,77 @@ export default function DashboardLayout({ children }) {
     builder:          "Builder",
     public:           "Public",
   }[userRole] ?? "Unknown";
+=======
+  const links = [
+    { path: "/home", label: "Home", icon: <FaHome className="h-5 w-5" /> },
+    {
+      path: "/project-creation",
+      label: "Project Creation",
+      icon: <FaProjectDiagram className="h-5 w-5" />,
+    },
+    {
+      path: "/city-corporation",
+      label: "Set City Crop",
+      icon: <FaCity className="h-5 w-5" />,
+    },
+    {
+      path: "/builder",
+      label: "Set Builder",
+      icon: <FaHardHat className="h-5 w-5" />,
+    },
+    {
+      path: "/installment-transfer",
+      label: "Installment Transfer",
+      icon: <FaMoneyCheckAlt className="h-5 w-5" />,
+    },
+    {
+      path: "/funds-transfer",
+      label: "Funds Transfer",
+      icon: <FaMoneyBillWave className="h-5 w-5" />,
+    },
+    {
+      path: "/data-display",
+      label: "Data Display",
+      icon: <FaTable className="h-5 w-5" />,
+    },
+  ];
+
+  // Prevent navigation to the same route (fixes the issue)
+  const handleNavClick = (e, path) => {
+    if (location.pathname === path) {
+      e.preventDefault();
+    }
+  };
+
+  // Set nav background based on theme
+  const navBg =
+    theme === "dark"
+      ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
+      : "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900";
+
+  // Set top bar background based on theme
+  const topBarBg = theme === "dark" ? "bg-slate-800/30" : "bg-emerald-50/80";
+
+  // Set sidebar background based on theme
+  const sidebarBg = theme === "dark" ? "bg-slate-800/30" : "bg-emerald-50/80";
+
+  // Set border color based on theme
+  const borderColor =
+    theme === "dark" ? "border-slate-700/50" : "border-emerald-200";
+
+  // Set mobile nav background based on theme
+  const mobileNavBg = theme === "dark" ? "bg-slate-800/95" : "bg-emerald-50/95";
+
+  // Set text color for logo
+  const logoTextColor =
+    theme === "dark" ? "text-slate-100" : "text-emerald-900";
+
+  // Set logo background
+  const logoBg =
+    theme === "dark"
+      ? "bg-gradient-to-br from-indigo-600 to-indigo-400"
+      : "bg-gradient-to-br from-emerald-400 to-emerald-200";
+>>>>>>> ffaddf21a4f1ea4582dabd4219f9d544581afc45
 
   return (
     <div className="flex min-h-screen bg-slate-900">

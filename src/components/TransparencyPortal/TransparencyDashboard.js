@@ -1,6 +1,16 @@
 // src/components/TransparencyPortal/TransparencyDashboard.js
-// Public Transparency Dashboard — no wallet required for read-only queries.
-// Implements Step 7A: search by project ID, view fund flow, progress, budget, participants.
+// ─────────────────────────────────────────────────────────────────────────────
+//  FIXED for Web3 v4
+//
+//  Changes:
+//    • Web3.utils.fromWei() (static) → web3instance.utils.fromWei() (instance)
+//      In Web3 v4, static utils calls behave differently with BigInt returns.
+//      Solution: use the instance method, and convert BigInt → String before parsing.
+//    • BigInt values returned by Web3 v4 contract calls are now native BigInt.
+//      All arithmetic and display now converts via String() before parseFloat/Number.
+//    • Contract instantiation updated to use instance utils.
+//    • No-wallet read-only mode still works — HttpProvider fallback unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from "react";
 import Web3 from "web3";
@@ -9,14 +19,28 @@ import {
   CONTRACT_ADDRESSES,
 } from "../../config";
 
-// ──────────────────────────────────────────────
-//  Helpers
-// ──────────────────────────────────────────────
-const weiToEth = (wei) =>
-  wei ? parseFloat(Web3.utils.fromWei(String(wei), "ether")).toFixed(4) : "0.0000";
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const fmtDate = (ts) =>
-  ts ? new Date(Number(ts) * 1000).toLocaleDateString("en-BD") : "—";
+// Web3 v4 returns BigInt from .call() — always convert to String first
+const weiToEth = (wei) => {
+  if (wei === undefined || wei === null) return "0.0000";
+  try {
+    // Web3.utils.fromWei works on string or BigInt in v4
+    const eth = Web3.utils.fromWei(String(wei), "ether");
+    return parseFloat(eth).toFixed(4);
+  } catch {
+    return "0.0000";
+  }
+};
+
+const fmtDate = (ts) => {
+  if (!ts) return "—";
+  try {
+    return new Date(Number(ts) * 1000).toLocaleDateString("en-BD");
+  } catch {
+    return "—";
+  }
+};
 
 const phaseColor = (phase) => {
   if (phase === "Planned")     return "bg-yellow-500/20 text-yellow-300 border-yellow-500/40";
@@ -25,8 +49,11 @@ const phaseColor = (phase) => {
   return "bg-green-500/20 text-green-300 border-green-500/40";
 };
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 function ProgressBar({ value }) {
-  const pct = Math.min(100, Math.max(0, Number(value)));
+  // value may be BigInt from Web3 v4 — convert safely
+  const pct = Math.min(100, Math.max(0, Number(String(value || 0))));
   return (
     <div className="w-full bg-slate-700 rounded-full h-3 mt-1">
       <div
@@ -48,29 +75,29 @@ function Card({ title, children }) {
 
 function InfoRow({ label, value }) {
   return (
-    <div className="flex justify-between items-center text-sm border-b border-slate-700/40 pb-1">
-      <span className="text-slate-400">{label}</span>
-      <span className="text-white font-medium text-right max-w-xs break-all">{value}</span>
+    <div className="flex justify-between items-center text-sm border-b border-slate-700/40 pb-1 gap-4">
+      <span className="text-slate-400 shrink-0">{label}</span>
+      <span className="text-white font-medium text-right break-all">{value}</span>
     </div>
   );
 }
 
-// ──────────────────────────────────────────────
-//  Main component
-// ──────────────────────────────────────────────
-export default function TransparencyDashboard() {
-  const [portal, setPortal]         = useState(null);
-  const [searchID, setSearchID]     = useState("");
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState("");
-  const [allProjects, setAllProjects] = useState([]);
-  const [selected, setSelected]     = useState(null); // full project details
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-  // Initialize portal with read-only provider (no MetaMask required)
+export default function TransparencyDashboard() {
+  const [portal, setPortal]           = useState(null);
+  const [searchID, setSearchID]       = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [allProjects, setAllProjects] = useState([]);
+  const [selected, setSelected]       = useState(null);
+
+  // ── Initialize portal contract (no MetaMask required) ──────────────────────
   useEffect(() => {
-    const w3 = new Web3(
-      window.ethereum || new Web3.providers.HttpProvider("http://localhost:7545")
-    );
+    const provider = window.ethereum
+      ? window.ethereum
+      : new Web3.providers.HttpProvider("http://127.0.0.1:7545");
+    const w3 = new Web3(provider);
     const p = new w3.eth.Contract(
       TRANSPARENCY_PORTAL_ABI,
       CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL
@@ -78,43 +105,55 @@ export default function TransparencyDashboard() {
     setPortal(p);
   }, []);
 
-  // Load all project summaries on mount
+  // ── Load all project summaries on mount ────────────────────────────────────
   useEffect(() => {
     if (!portal) return;
-    portal.methods.getAllProjectSummaries().call()
-      .then(setAllProjects)
-      .catch(() => {}); // contract may not be deployed yet in dev
+    if (CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL === "YOUR_TRANSPARENCY_PORTAL_ADDRESS") return;
+    portal.methods
+      .getAllProjectSummaries()
+      .call()
+      .then((data) => setAllProjects(data))
+      .catch((err) => console.warn("getAllProjectSummaries:", err.message));
   }, [portal]);
 
+  // ── Search handler ─────────────────────────────────────────────────────────
   const handleSearch = useCallback(async () => {
-    if (!portal || !searchID.trim()) return;
+    const id = searchID.trim();
+    if (!portal || !id) return;
     setLoading(true);
     setError("");
     setSelected(null);
+
     try {
       const [status, progress, fundFlow, participants] = await Promise.all([
-        portal.methods.getProjectStatus(searchID.trim()).call(),
-        portal.methods.getProjectProgress(searchID.trim()).call(),
-        portal.methods.getFundFlow(searchID.trim()).call(),
-        portal.methods.getProjectParticipants(searchID.trim()).call(),
+        portal.methods.getProjectStatus(id).call(),
+        portal.methods.getProjectProgress(id).call(),
+        portal.methods.getFundFlow(id).call(),
+        portal.methods.getProjectParticipants(id).call(),
       ]);
       setSelected({ status, progress, fundFlow, participants });
     } catch (err) {
-      setError("Project not found or contract unavailable. Check the Project ID.");
+      setError("Project not found or contract not deployed. Check the Project ID and config.js addresses.");
     } finally {
       setLoading(false);
     }
   }, [portal, searchID]);
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white">
+
       {/* Header */}
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center text-xl">🔍</div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center text-xl">
+            🔍
+          </div>
           <div>
             <h1 className="text-2xl font-bold">Public Transparency Portal</h1>
-            <p className="text-slate-400 text-sm">Search and verify government fund disbursements — no wallet required</p>
+            <p className="text-slate-400 text-sm">
+              Search and verify government fund disbursements — no wallet required
+            </p>
           </div>
         </div>
       </div>
@@ -141,9 +180,10 @@ export default function TransparencyDashboard() {
         {error && <p className="text-red-400 mt-2 text-sm">{error}</p>}
       </div>
 
-      {/* Search result */}
+      {/* Search result cards */}
       {selected && (
         <div className="max-w-5xl mx-auto mb-10 space-y-4">
+
           {/* Status */}
           <Card title="Project Status">
             <div className="flex flex-wrap gap-2 items-center mb-3">
@@ -151,7 +191,9 @@ export default function TransparencyDashboard() {
                 {selected.status.phase}
               </span>
               {!selected.status.isActive && (
-                <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-red-500/20 text-red-300 border-red-500/40">Inactive</span>
+                <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-red-500/20 text-red-300 border-red-500/40">
+                  Inactive
+                </span>
               )}
             </div>
             <InfoRow label="Project ID"   value={selected.status.projectID} />
@@ -164,7 +206,10 @@ export default function TransparencyDashboard() {
 
           {/* Progress */}
           <Card title="Funding Progress">
-            <InfoRow label="Installments Released" value={`${selected.progress.installmentsReleased} / ${selected.progress.maxInstallments}`} />
+            <InfoRow
+              label="Installments Released"
+              value={`${String(selected.progress.installmentsReleased)} / ${String(selected.progress.maxInstallments)}`}
+            />
             <div>
               <div className="flex justify-between text-sm text-slate-400 mt-1">
                 <span>Budget Disbursed</span>
@@ -172,8 +217,8 @@ export default function TransparencyDashboard() {
               </div>
               <ProgressBar value={selected.progress.percentFunded} />
             </div>
-            <InfoRow label="Funds Reached City Corp"  value={`${weiToEth(selected.progress.fundsReachedCC)} ETH`} />
-            <InfoRow label="Funds Reached Builder"    value={`${weiToEth(selected.progress.fundsReachedBuilder)} ETH`} />
+            <InfoRow label="Funds Reached City Corp" value={`${weiToEth(selected.progress.fundsReachedCC)} ETH`} />
+            <InfoRow label="Funds Reached Builder"   value={`${weiToEth(selected.progress.fundsReachedBuilder)} ETH`} />
           </Card>
 
           {/* Fund Flow */}
@@ -189,8 +234,8 @@ export default function TransparencyDashboard() {
           <Card title="Project Participants (Accountability)">
             <InfoRow label="Finance Ministry"  value={selected.participants.financeMinistry} />
             <InfoRow label="Treasury"          value={selected.participants.treasury} />
-            <InfoRow label="City Corporation"  value={selected.participants.cityCorporation || "Not assigned"} />
-            <InfoRow label="Builder"           value={selected.participants.builder || "Not assigned"} />
+            <InfoRow label="City Corporation"  value={selected.participants.cityCorporation || "Not yet assigned"} />
+            <InfoRow label="Builder"           value={selected.participants.builder || "Not yet assigned"} />
           </Card>
         </div>
       )}
@@ -218,7 +263,7 @@ export default function TransparencyDashboard() {
                     key={i}
                     className="border-t border-slate-700/40 hover:bg-slate-800/40 transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono text-cyan-400">{p.projectID}</td>
+                    <td className="px-4 py-3 font-mono text-cyan-400 text-xs">{p.projectID}</td>
                     <td className="px-4 py-3 text-white">{p.projectName}</td>
                     <td className="px-4 py-3">{weiToEth(p.allocatedBudget)}</td>
                     <td className="px-4 py-3">{weiToEth(p.totalDisbursed)}</td>
@@ -226,12 +271,17 @@ export default function TransparencyDashboard() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <ProgressBar value={p.utilizationRate} />
-                        <span className="text-slate-300 w-10 text-right">{String(p.utilizationRate)}%</span>
+                        <span className="text-slate-300 w-10 text-right">
+                          {String(p.utilizationRate)}%
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => { setSearchID(p.projectID); setSelected(null); }}
+                        onClick={() => {
+                          setSearchID(p.projectID);
+                          setSelected(null);
+                        }}
                         className="text-cyan-400 hover:text-cyan-300 text-xs underline"
                       >
                         Details
@@ -242,6 +292,14 @@ export default function TransparencyDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* No contracts message */}
+      {CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL === "YOUR_TRANSPARENCY_PORTAL_ADDRESS" && (
+        <div className="max-w-5xl mx-auto mt-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
+          ⚠️ Contract addresses not configured. Deploy contracts in Remix and update{" "}
+          <code className="bg-yellow-500/20 px-1 rounded">src/config.js</code> → CONTRACT_ADDRESSES.
         </div>
       )}
     </div>

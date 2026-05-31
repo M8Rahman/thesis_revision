@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaLock, FaArrowCircleRight, FaUser, FaCube, FaLink as FaLinkIcon, FaEnvelope, FaShieldAlt } from "react-icons/fa";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebase.init";
@@ -29,9 +29,10 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   // control/feedback state
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [termsError, setTermsError] = useState("");
 
   // validations
@@ -48,7 +49,6 @@ const SignUp = () => {
   }, [password]);
 
   const canSubmit =
-    !loading &&
     acceptTerms &&
     fullName.trim().length > 0 &&
     email &&
@@ -80,13 +80,11 @@ const SignUp = () => {
     }
 
     try {
-      setLoading(true);
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const ENABLE_EMAIL_VERIFICATION = true;
       if (ENABLE_EMAIL_VERIFICATION && cred?.user) {
         try {
           await sendEmailVerification(cred.user);
-          
         } catch (ve) {
           console.warn("Email verification send failed:", ve);
         }
@@ -99,14 +97,10 @@ const SignUp = () => {
       // Reset form after successful registration
       handleReset();
       // Redirect to sign-in page
-      setTimeout(() => {
-        window.location.href = "/sign-in";
-      }, 2000);
+      navigate("/sign-in");
     } catch (err) {
       console.log("Firebase error:", err);
       toast.error(mapFirebaseError(err?.code || err?.message), { position: "top-right" });
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -281,7 +275,7 @@ const SignUp = () => {
                       : "bg-slate-700 text-slate-400 cursor-not-allowed"
                   }`}
               >
-                <span className="mr-2">{loading ? "Creating..." : "Create Account"}</span>
+                <span className="mr-2">Create Account</span>
                 <FaArrowCircleRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
               </button>
             </div>
