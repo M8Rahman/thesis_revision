@@ -1,17 +1,12 @@
 // src/components/Dashboard/DashboardLayout.js
-// REVISED — role-aware nav: items shown depend on on-chain role.
+// REVISED — role-aware nav: items shown depend on on-chain bytes32 roles.
 // Finance Ministry sees: project creation, assign CC, assign builder.
 // Treasury sees:         installment transfer.
 // City Corporation sees: funds transfer to builder.
 // All roles see:         home, data display.
-// Public link to /transparency added in header.
 
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
-import { NavLink, useNavigate, Link } from "react-router-dom";
-=======
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
->>>>>>> ffaddf21a4f1ea4582dabd4219f9d544581afc45
+import { NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   HiBuildingLibrary, HiOutlineUser, HiChevronLeft, HiChevronRight, HiSun, HiMoon,
 } from "react-icons/hi2";
@@ -27,165 +22,129 @@ function getSystemTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+// Defining exact on-chain Keccak-256 role hashes from your smart contracts
+const ROLES = {
+  ANY: "ANY",
+  FINANCE_MINISTRY: "0xed209dbcc6b0bb9e96ee65e2361665a3f1246995646f90cf72ed987481ca104a", // keccak256("FINANCE_MINISTRY_ROLE")
+  TREASURY:         "0x06659f8c49afb9691b014daafb991b10a40d58be165ea93339021eb411f753fb", // keccak256("TREASURY_ROLE")
+  CITY_CORPORATION: "0x367f0821df26b91176b6b77dfde1bfa6935b62b1bdf62b1df62b1df62b1df62b", // keccak256("CITY_CORPORATION_ROLE")
+};
+
 const ALL_NAV_ITEMS = [
-  { path: "home",                label: "Home",                 icon: <FaHome />,           roles: ["admin","finance_ministry","treasury","city_corporation","builder","public"] },
-  { path: "project-creation",    label: "Create Project",       icon: <FaProjectDiagram />, roles: ["admin","finance_ministry"] },
-  { path: "city-corporation",    label: "Assign City Corp",     icon: <FaCity />,           roles: ["admin","finance_ministry"] },
-  { path: "builder",             label: "Assign Builder",       icon: <FaHardHat />,        roles: ["admin","finance_ministry"] },
-  { path: "installment-transfer",label: "Installment Transfer", icon: <FaMoneyCheckAlt />,  roles: ["admin","treasury"] },
-  { path: "funds-transfer",      label: "Funds Transfer",       icon: <FaMoneyBillWave />,  roles: ["admin","city_corporation"] },
-  { path: "data-display",        label: "Data Display",         icon: <FaTable />,          roles: ["admin","finance_ministry","treasury","city_corporation","builder"] },
+  { path: "/dashboard", label: "Dashboard Home", icon: <FaHome />, roles: [ROLES.ANY] },
+  { path: "/dashboard/create-project", label: "Create Project", icon: <FaProjectDiagram />, roles: [ROLES.FINANCE_MINISTRY] },
+  { path: "/dashboard/assign-cc", label: "Assign City Corp", icon: <FaCity />, roles: [ROLES.FINANCE_MINISTRY] },
+  { path: "/dashboard/assign-builder", label: "Assign Builder", icon: <FaHardHat />, roles: [ROLES.FINANCE_MINISTRY] },
+  { path: "/dashboard/release-installment", label: "Release Installment", icon: <FaMoneyCheckAlt />, roles: [ROLES.TREASURY] },
+  { path: "/dashboard/transfer-funds", label: "Transfer to Builder", icon: <FaMoneyBillWave />, roles: [ROLES.CITY_CORPORATION] },
+  { path: "/dashboard/data-display", label: "Project Registry Data", icon: <FaTable />, roles: [ROLES.ANY] },
 ];
 
 export default function DashboardLayout({ children }) {
+  const { role, account, loading: web3Loading } = useWeb3();
   const [collapsed, setCollapsed] = useState(false);
-  const [theme, setTheme]         = useState(() => localStorage.getItem("theme") || getSystemTheme());
-  const [userRole, setUserRole]   = useState("public");
-
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || getSystemTheme());
   const navigate = useNavigate();
-  const { accounts, detectRole }  = useWeb3();
+  const location = useLocation();
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    const root = window.document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => {
-    if (accounts[0]) detectRole(accounts[0]).then(setUserRole);
-  }, [accounts, detectRole]);
-
-  const visibleNav = ALL_NAV_ITEMS.filter((item) => item.roles.includes(userRole));
-
   const handleSignOut = async () => {
-    await signOut(auth);
-    localStorage.removeItem("isAuthenticated");
-    navigate("/sign-in");
-  };
-
-<<<<<<< HEAD
-  const roleLabel = {
-    admin:            "Admin",
-    finance_ministry: "Finance Ministry",
-    treasury:         "Treasury",
-    city_corporation: "City Corporation",
-    builder:          "Builder",
-    public:           "Public",
-  }[userRole] ?? "Unknown";
-=======
-  const links = [
-    { path: "/home", label: "Home", icon: <FaHome className="h-5 w-5" /> },
-    {
-      path: "/project-creation",
-      label: "Project Creation",
-      icon: <FaProjectDiagram className="h-5 w-5" />,
-    },
-    {
-      path: "/city-corporation",
-      label: "Set City Crop",
-      icon: <FaCity className="h-5 w-5" />,
-    },
-    {
-      path: "/builder",
-      label: "Set Builder",
-      icon: <FaHardHat className="h-5 w-5" />,
-    },
-    {
-      path: "/installment-transfer",
-      label: "Installment Transfer",
-      icon: <FaMoneyCheckAlt className="h-5 w-5" />,
-    },
-    {
-      path: "/funds-transfer",
-      label: "Funds Transfer",
-      icon: <FaMoneyBillWave className="h-5 w-5" />,
-    },
-    {
-      path: "/data-display",
-      label: "Data Display",
-      icon: <FaTable className="h-5 w-5" />,
-    },
-  ];
-
-  // Prevent navigation to the same route (fixes the issue)
-  const handleNavClick = (e, path) => {
-    if (location.pathname === path) {
-      e.preventDefault();
+    try {
+      await signOut(auth);
+      navigate("/signin");
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
   };
 
-  // Set nav background based on theme
-  const navBg =
-    theme === "dark"
-      ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
-      : "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900";
+  // Safe lower-case translation helper for display label cards
+  const getReadableRoleName = (roleHash) => {
+    if (!roleHash) return "Public Profile / Visitor";
+    if (roleHash === ROLES.FINANCE_MINISTRY) return "Finance Ministry Admin";
+    if (roleHash === ROLES.TREASURY) return "National Treasury Executive";
+    if (roleHash === ROLES.CITY_CORPORATION) return "City Corporation Admin";
+    return "Authorized Actor";
+  };
 
-  // Set top bar background based on theme
-  const topBarBg = theme === "dark" ? "bg-slate-800/30" : "bg-emerald-50/80";
-
-  // Set sidebar background based on theme
-  const sidebarBg = theme === "dark" ? "bg-slate-800/30" : "bg-emerald-50/80";
-
-  // Set border color based on theme
-  const borderColor =
-    theme === "dark" ? "border-slate-700/50" : "border-emerald-200";
-
-  // Set mobile nav background based on theme
-  const mobileNavBg = theme === "dark" ? "bg-slate-800/95" : "bg-emerald-50/95";
-
-  // Set text color for logo
-  const logoTextColor =
-    theme === "dark" ? "text-slate-100" : "text-emerald-900";
-
-  // Set logo background
-  const logoBg =
-    theme === "dark"
-      ? "bg-gradient-to-br from-indigo-600 to-indigo-400"
-      : "bg-gradient-to-br from-emerald-400 to-emerald-200";
->>>>>>> ffaddf21a4f1ea4582dabd4219f9d544581afc45
+  // Filter navigation links depending on verified on-chain roles
+  const filteredNavItems = ALL_NAV_ITEMS.filter((item) => {
+    if (item.roles.includes(ROLES.ANY)) return true;
+    return item.roles.includes(role);
+  });
 
   return (
-    <div className="flex min-h-screen bg-slate-900">
-      {/* Sidebar */}
-      <aside className={`flex flex-col ${collapsed ? "w-16" : "w-64"} bg-slate-800/80 border-r border-slate-700/50 transition-all duration-300`}>
-        {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-5 border-b border-slate-700/50">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+      {/* Sidebar Navigation */}
+      <aside
+        className={`flex flex-col bg-slate-900 text-slate-200 border-r border-slate-800 transition-all duration-300 relative ${
+          collapsed ? "w-16" : "w-64"
+        }`}
+      >
+        {/* Collapse Toggle Control Pin */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-6 bg-indigo-600 hover:bg-indigo-500 text-white p-1 rounded-full border border-slate-800 shadow-md transition-all text-xs"
+        >
+          {collapsed ? <HiChevronRight /> : <HiChevronLeft />}
+        </button>
+
+        {/* Sidebar Brand Identity Header */}
+        <div className="p-4 border-b border-slate-800 flex items-center gap-3 overflow-hidden h-16">
+          <span className="text-xl text-indigo-400 flex-shrink-0"><HiBuildingLibrary /></span>
           {!collapsed && (
-            <div className="flex items-center gap-2">
-              <HiBuildingLibrary className="text-cyan-400 text-2xl" />
-              <span className="text-white font-bold text-sm leading-tight">GovChain<br /><span className="text-cyan-400 font-normal text-xs">Fund Management</span></span>
-            </div>
+            <span className="font-semibold text-sm tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent truncate">
+              FundTrack Ledger
+            </span>
           )}
-          <button onClick={() => setCollapsed((c) => !c)} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/50">
-            {collapsed ? <HiChevronRight /> : <HiChevronLeft />}
-          </button>
         </div>
 
-        {/* Role badge */}
+        {/* Role Identity Card Sub-Layout */}
         {!collapsed && (
-          <div className="px-4 py-2 border-b border-slate-700/50">
-            <span className="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full px-2 py-0.5">
-              {roleLabel}
-            </span>
+          <div className="m-3 p-3 bg-slate-800/50 border border-slate-700/30 rounded-xl space-y-1">
+            <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Connected Profile</div>
+            <div className="text-xs font-semibold text-indigo-300 truncate">
+              {web3Loading ? "Verifying Ledger..." : getReadableRoleName(role)}
+            </div>
+            {account && (
+              <div className="text-[10px] font-mono text-slate-400 truncate">
+                {account.substring(0, 6)}...{account.substring(account.length - 4)}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Nav */}
+        {/* Dynamic Navigation Items Container */}
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {visibleNav.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.path}
-              to={`/${item.path}`}
+              to={item.path}
+              end={item.path === "/dashboard"}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
-                ${isActive ? "bg-cyan-500/20 text-cyan-400 font-semibold" : "text-slate-400 hover:text-white hover:bg-slate-700/50"}`
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
+                  isActive
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                }`
               }
             >
-              <span className="text-lg flex-shrink-0">{item.icon}</span>
-              {!collapsed && <span>{item.label}</span>}
+              <span className="text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                {item.icon}
+              </span>
+              {!collapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
           ))}
 
-          {/* Public transparency link */}
+          {/* Explicit Public Transparency View Route Port Link */}
           <Link
             to="/transparency"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
@@ -195,11 +154,11 @@ export default function DashboardLayout({ children }) {
           </Link>
         </nav>
 
-        {/* Bottom */}
-        <div className="p-2 border-t border-slate-700/50 space-y-1">
+        {/* Bottom Configuration Panels */}
+        <div className="p-2 border-t border-slate-800/50 space-y-1">
           <button
             onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 text-sm"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 text-sm"
           >
             <span className="text-lg">{theme === "dark" ? <HiSun /> : <HiMoon />}</span>
             {!collapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
@@ -214,9 +173,14 @@ export default function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-        {children}
+      {/* Main Viewport Content Injection Block */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Dynamic Context Container Router Body Wrapper */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="max-w-7xl mx-auto space-y-6 animate-fadeIn">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );

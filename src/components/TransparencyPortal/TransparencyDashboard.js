@@ -278,9 +278,27 @@ export default function TransparencyDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           setSearchID(p.projectID);
                           setSelected(null);
+                          // call search immediately with the new ID
+                          const id = p.projectID;
+                          if (!portal || !id) return;
+                          setLoading(true);
+                          setError("");
+                          try {
+                            const [status, progress, fundFlow, participants] = await Promise.all([
+                              portal.methods.getProjectStatus(id).call(),
+                              portal.methods.getProjectProgress(id).call(),
+                              portal.methods.getFundFlow(id).call(),
+                              portal.methods.getProjectParticipants(id).call(),
+                            ]);
+                            setSelected({ status, progress, fundFlow, participants });
+                          } catch (err) {
+                            setError("Could not load project details.");
+                          } finally {
+                            setLoading(false);
+                          }
                         }}
                         className="text-cyan-400 hover:text-cyan-300 text-xs underline"
                       >
