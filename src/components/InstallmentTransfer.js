@@ -1,13 +1,14 @@
 // src/components/InstallmentTransfer.js
 // ─────────────────────────────────────────────────────────────────────────────
-//  FIXED for Web3 v4
+//  FIXED — Wrong function name corrected
 //
-//  Changes:
-//    • web3.utils.toWei() — value must be a STRING in Web3 v4.
-//      Changed: toWei(amountEth, "ether") → toWei(String(amountEth), "ether")
-//    • Error message extraction updated for v4 nested error structure.
-//    • Added contract address placeholder guard.
-//    • MetaMask account display added for clarity during testing.
+//  BUG: This component called fundManager.methods.sendInstallment() but the
+//  original config.js ABI only had `releaseInstallment` (wrong name).
+//  The Solidity function is actually named `sendInstallment`.
+//  The ABI is now corrected in config.js. This file calls sendInstallment
+//  which matches both the corrected ABI and the Solidity source.
+//
+//  Also: Web3 v4 toWei fix is preserved (String() wrapper).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from "react";
@@ -37,9 +38,10 @@ export default function InstallmentTransfer() {
 
     setSubmitting(true);
     try {
-      // Web3 v4 FIX: toWei requires a string, not a number
+      // Web3 v4: toWei requires a string
       const amountWei = web3.utils.toWei(String(amountEth), "ether");
 
+      // Correct function name: sendInstallment (matches Solidity)
       await fundManager.methods
         .sendInstallment(projectID)
         .send({ from: accounts[0], value: amountWei });

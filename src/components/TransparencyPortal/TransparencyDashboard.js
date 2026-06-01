@@ -1,15 +1,39 @@
 // src/components/TransparencyPortal/TransparencyDashboard.js
 // ─────────────────────────────────────────────────────────────────────────────
-//  FIXED for Web3 v4
+//  FIXED — "Searching..." stuck forever resolved
 //
-//  Changes:
-//    • Web3.utils.fromWei() (static) → web3instance.utils.fromWei() (instance)
-//      In Web3 v4, static utils calls behave differently with BigInt returns.
-//      Solution: use the instance method, and convert BigInt → String before parsing.
-//    • BigInt values returned by Web3 v4 contract calls are now native BigInt.
-//      All arithmetic and display now converts via String() before parseFloat/Number.
-//    • Contract instantiation updated to use instance utils.
-//    • No-wallet read-only mode still works — HttpProvider fallback unchanged.
+//  ROOT CAUSE:
+//    The component called four methods:
+//      portal.methods.getProjectStatus(id).call()
+//      portal.methods.getProjectProgress(id).call()
+//      portal.methods.getFundFlow(id).call()
+//      portal.methods.getProjectParticipants(id).call()
+//
+//    BUT the TRANSPARENCY_PORTAL_ABI in the original config.js only declared
+//    two functions: getProjectCompleteDetails() and getAllProjectSummaries().
+//    The four individual functions were missing from the ABI entirely.
+//
+//    When Web3 tries to call a method not in the ABI, it encodes the call
+//    incorrectly and the RPC call either returns garbage or hangs. Combined
+//    with no timeout, this left loading=true permanently — the button stuck
+//    on "Searching…" forever with no error shown.
+//
+//  FIX 1 (PRIMARY): config.js now has all four functions in the ABI.
+//    Make sure you are using the fixed config.js from this patch set.
+//
+//  FIX 2 (SAFETY NET): Added a 15-second timeout to Promise.all so the
+//    button NEVER stays stuck forever — it will show a clear error message.
+//
+//  FIX 3: portal initialization now uses getMetaMaskProvider() instead of
+//    window.ethereum directly, matching the fix in useWeb3.js and DataDisplay.
+//    This avoids the multi-wallet conflict that could silently break the
+//    HttpProvider fallback.
+//
+//  FIX 4: Added a null-guard — if portal is still null when Search is clicked
+//    (e.g. Ganache not running), show a clear error immediately instead of
+//    hanging silently.
+//
+//  Everything else (UI, layout, styles) is unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -19,13 +43,23 @@ import {
   CONTRACT_ADDRESSES,
 } from "../../config";
 
+// ── Same multi-wallet resolver used in useWeb3 ────────────────────────────────
+function getMetaMaskProvider() {
+  if (!window.ethereum) return null;
+  if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+    const mm = window.ethereum.providers.find((p) => p.isMetaMask && !p.isBraveWallet)
+            || window.ethereum.providers.find((p) => p.isMetaMask)
+            || window.ethereum.providers[0];
+    return mm || null;
+  }
+  return window.ethereum;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Web3 v4 returns BigInt from .call() — always convert to String first
 const weiToEth = (wei) => {
   if (wei === undefined || wei === null) return "0.0000";
   try {
-    // Web3.utils.fromWei works on string or BigInt in v4
     const eth = Web3.utils.fromWei(String(wei), "ether");
     return parseFloat(eth).toFixed(4);
   } catch {
@@ -52,7 +86,6 @@ const phaseColor = (phase) => {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ProgressBar({ value }) {
-  // value may be BigInt from Web3 v4 — convert safely
   const pct = Math.min(100, Math.max(0, Number(String(value || 0))));
   return (
     <div className="w-full bg-slate-700 rounded-full h-3 mt-1">
@@ -94,50 +127,100 @@ export default function TransparencyDashboard() {
 
   // ── Initialize portal contract (no MetaMask required) ──────────────────────
   useEffect(() => {
-    const provider = window.ethereum
-      ? window.ethereum
-      : new Web3.providers.HttpProvider("http://127.0.0.1:7545");
-    const w3 = new Web3(provider);
-    const p = new w3.eth.Contract(
-      TRANSPARENCY_PORTAL_ABI,
-      CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL
-    );
-    setPortal(p);
+    try {
+      // FIX 3: Use getMetaMaskProvider() to avoid multi-wallet conflict
+      const mmProvider = getMetaMaskProvider();
+      const provider = mmProvider
+        ? mmProvider
+        : new Web3.providers.HttpProvider("http://127.0.0.1:7545");
+      const w3 = new Web3(provider);
+
+      if (!Web3.utils.isAddress(CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL)) {
+        console.warn("TransparencyDashboard: invalid contract address in config.js");
+        return;
+      }
+
+      const p = new w3.eth.Contract(
+        TRANSPARENCY_PORTAL_ABI,
+        CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL
+      );
+      setPortal(p);
+    } catch (e) {
+      console.warn("TransparencyDashboard: portal init error:", e.message);
+    }
   }, []);
 
   // ── Load all project summaries on mount ────────────────────────────────────
   useEffect(() => {
     if (!portal) return;
     if (CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL === "YOUR_TRANSPARENCY_PORTAL_ADDRESS") return;
+
     portal.methods
       .getAllProjectSummaries()
       .call()
-      .then((data) => setAllProjects(data))
+      .then((data) => setAllProjects(data || []))
       .catch((err) => console.warn("getAllProjectSummaries:", err.message));
   }, [portal]);
 
-  // ── Search handler ─────────────────────────────────────────────────────────
-  const handleSearch = useCallback(async () => {
-    const id = searchID.trim();
-    if (!portal || !id) return;
+  // ── Core search: calls the four individual view functions ──────────────────
+  const doSearch = useCallback(async (id) => {
+    // FIX 4: Null-guard with clear error
+    if (!portal) {
+      setError(
+        "Contract not initialized. Make sure Ganache is running and contract addresses in config.js are correct."
+      );
+      return;
+    }
+    if (!id) return;
+
     setLoading(true);
     setError("");
     setSelected(null);
 
+    // FIX 2: 15-second timeout — button will NEVER stay stuck forever
+    const timeout = new Promise((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Request timed out after 15 seconds. Is Ganache running?")),
+        15000
+      )
+    );
+
     try {
-      const [status, progress, fundFlow, participants] = await Promise.all([
-        portal.methods.getProjectStatus(id).call(),
-        portal.methods.getProjectProgress(id).call(),
-        portal.methods.getFundFlow(id).call(),
-        portal.methods.getProjectParticipants(id).call(),
+      // FIX 1: These four methods now work because config.js ABI includes them.
+      //   getProjectStatus()      → ProjectStatus struct
+      //   getProjectProgress()    → ProjectProgress struct
+      //   getFundFlow()           → FundFlow struct
+      //   getProjectParticipants()→ ProjectParticipants struct
+      const [status, progress, fundFlow, participants] = await Promise.race([
+        Promise.all([
+          portal.methods.getProjectStatus(id).call(),
+          portal.methods.getProjectProgress(id).call(),
+          portal.methods.getFundFlow(id).call(),
+          portal.methods.getProjectParticipants(id).call(),
+        ]),
+        timeout,
       ]);
+
       setSelected({ status, progress, fundFlow, participants });
     } catch (err) {
-      setError("Project not found or contract not deployed. Check the Project ID and config.js addresses.");
+      console.error("TransparencyDashboard search error:", err.message);
+      if (err.message.includes("timed out")) {
+        setError(err.message);
+      } else {
+        setError(
+          "Project not found or contract call failed. " +
+          "Check the Project ID and make sure the contract addresses in config.js are correct."
+        );
+      }
     } finally {
       setLoading(false);
     }
-  }, [portal, searchID]);
+  }, [portal]);
+
+  // ── Search handler (called by button and Enter key) ────────────────────────
+  const handleSearch = useCallback(() => {
+    doSearch(searchID.trim());
+  }, [doSearch, searchID]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -177,7 +260,7 @@ export default function TransparencyDashboard() {
             {loading ? "Searching…" : "Search"}
           </button>
         </div>
-        {error && <p className="text-red-400 mt-2 text-sm">{error}</p>}
+        {error && <p className="text-red-400 mt-2 text-sm">⚠ {error}</p>}
       </div>
 
       {/* Search result cards */}
@@ -278,27 +361,9 @@ export default function TransparencyDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={async () => {
+                        onClick={() => {
                           setSearchID(p.projectID);
-                          setSelected(null);
-                          // call search immediately with the new ID
-                          const id = p.projectID;
-                          if (!portal || !id) return;
-                          setLoading(true);
-                          setError("");
-                          try {
-                            const [status, progress, fundFlow, participants] = await Promise.all([
-                              portal.methods.getProjectStatus(id).call(),
-                              portal.methods.getProjectProgress(id).call(),
-                              portal.methods.getFundFlow(id).call(),
-                              portal.methods.getProjectParticipants(id).call(),
-                            ]);
-                            setSelected({ status, progress, fundFlow, participants });
-                          } catch (err) {
-                            setError("Could not load project details.");
-                          } finally {
-                            setLoading(false);
-                          }
+                          doSearch(p.projectID);
                         }}
                         className="text-cyan-400 hover:text-cyan-300 text-xs underline"
                       >

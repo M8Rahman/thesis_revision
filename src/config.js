@@ -1,7 +1,18 @@
+// src/config.js
 // ─────────────────────────────────────────────────────────────────────────────
-//  config.js  — Contract ABIs and Addresses
-//  REVISED for Thesis v2 (three-contract modular architecture)
-//  Replace YOUR_*_ADDRESS values after each truffle migrate run.
+//  FIXED — FundTransferManager ABI constructor corrected
+//
+//  BUG: The FundTransferManager constructor in the Solidity is:
+//    constructor(address _registry, address _defaultAdmin)
+//  But the original ABI here only had one input: (address _registry).
+//  This mismatch means the frontend may fail to call the contract correctly.
+//
+//  FIX: Added the missing _defaultAdmin constructor argument to the ABI.
+//
+//  Also added the missing `sendInstallment` function — the ABI had
+//  `releaseInstallment` but your Solidity uses `sendInstallment`.
+//
+//  IMPORTANT: Replace CONTRACT_ADDRESSES values after each Remix deployment.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── ProjectRegistry ABI ─────────────────────────────────────────────────────
@@ -37,6 +48,36 @@ export const PROJECT_REGISTRY_ABI = [
     "name": "BUILDER_ROLE",
     "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "hasRole",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "grantRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "revokeRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -103,19 +144,49 @@ export const PROJECT_REGISTRY_ABI = [
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "allProjectIDs",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "name": "projects",
+    "outputs": [
+      { "internalType": "string",  "name": "projectID",       "type": "string" },
+      { "internalType": "string",  "name": "projectName",     "type": "string" },
+      { "internalType": "string",  "name": "projectArea",     "type": "string" },
+      { "internalType": "uint256", "name": "allocatedBudget", "type": "uint256" },
+      { "internalType": "address", "name": "financeMinistry", "type": "address" },
+      { "internalType": "address", "name": "treasury",        "type": "address" },
+      { "internalType": "address", "name": "cityCorporation", "type": "address" },
+      { "internalType": "address", "name": "builder",         "type": "address" },
+      { "internalType": "uint256", "name": "createdAt",       "type": "uint256" },
+      { "internalType": "bool",    "name": "isActive",        "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
 // ─── FundTransferManager ABI ─────────────────────────────────────────────────
+// FIXED: Constructor now has BOTH arguments matching the Solidity:
+//   constructor(address _registry, address _defaultAdmin)
 export const FUND_TRANSFER_MANAGER_ABI = [
   {
-    "inputs": [{ "internalType": "address", "name": "_registry", "type": "address" }],
+    "inputs": [
+      { "internalType": "address", "name": "_registry",     "type": "address" },
+      { "internalType": "address", "name": "_defaultAdmin", "type": "address" }
+    ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
     "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
-    "name": "releaseInstallment",
+    "name": "sendInstallment",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
@@ -131,11 +202,38 @@ export const FUND_TRANSFER_MANAGER_ABI = [
     "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
     "name": "getFundData",
     "outputs": [
-      { "internalType": "uint256", "name": "toCC", "type": "uint256" },
-      { "internalType": "uint256", "name": "toBuilder", "type": "uint256" },
-      { "internalType": "uint256", "name": "numInstallments", "type": "uint256" }
+      { "internalType": "uint256", "name": "toCC",             "type": "uint256" },
+      { "internalType": "uint256", "name": "toBuilder",        "type": "uint256" },
+      { "internalType": "uint256", "name": "numInstallments",  "type": "uint256" }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_INSTALLMENTS",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "role",    "type": "bytes32" },
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "hasRole",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "role",    "type": "bytes32" },
+      { "internalType": "address", "name": "account", "type": "address" }
+    ],
+    "name": "grantRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ];
@@ -144,7 +242,7 @@ export const FUND_TRANSFER_MANAGER_ABI = [
 export const TRANSPARENCY_PORTAL_ABI = [
   {
     "inputs": [
-      { "internalType": "address", "name": "_registry", "type": "address" },
+      { "internalType": "address", "name": "_registry",    "type": "address" },
       { "internalType": "address", "name": "_fundManager", "type": "address" }
     ],
     "stateMutability": "nonpayable",
@@ -152,47 +250,83 @@ export const TRANSPARENCY_PORTAL_ABI = [
   },
   {
     "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
-    "name": "getProjectCompleteDetails",
+    "name": "getProjectStatus",
     "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "projectID", "type": "string" },
-          { "internalType": "string", "name": "projectName", "type": "string" },
-          { "internalType": "string", "name": "projectArea", "type": "string" },
-          { "internalType": "bool", "name": "isActive", "type": "bool" },
-          { "internalType": "bool", "name": "hasCityCorporation", "type": "bool" },
-          { "internalType": "bool", "name": "hasBuilder", "type": "bool" },
-          { "internalType": "string", "name": "phase", "type": "string" },
-          { "internalType": "uint256", "name": "createdAt", "type": "uint256" }
+          { "internalType": "string",  "name": "projectID",          "type": "string" },
+          { "internalType": "string",  "name": "projectName",        "type": "string" },
+          { "internalType": "string",  "name": "projectArea",        "type": "string" },
+          { "internalType": "bool",    "name": "isActive",           "type": "bool" },
+          { "internalType": "bool",    "name": "hasCityCorporation", "type": "bool" },
+          { "internalType": "bool",    "name": "hasBuilder",         "type": "bool" },
+          { "internalType": "string",  "name": "phase",              "type": "string" },
+          { "internalType": "uint256", "name": "createdAt",          "type": "uint256" }
         ],
         "internalType": "struct TransparencyPortal.ProjectStatus",
-        "name": "status",
+        "name": "",
         "type": "tuple"
-      },
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
+    "name": "getProjectProgress",
+    "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "projectID", "type": "string" },
-          { "internalType": "uint256", "name": "installmentsReleased", "type": "uint256" },
-          { "internalType": "uint256", "name": "maxInstallments", "type": "uint256" },
-          { "internalType": "uint256", "name": "percentFunded", "type": "uint256" },
-          { "internalType": "uint256", "name": "fundsReachedCC", "type": "uint256" },
-          { "internalType": "uint256", "name": "fundsReachedBuilder", "type": "uint256" }
+          { "internalType": "string",  "name": "projectID",             "type": "string" },
+          { "internalType": "uint256", "name": "installmentsReleased",  "type": "uint256" },
+          { "internalType": "uint256", "name": "maxInstallments",       "type": "uint256" },
+          { "internalType": "uint256", "name": "percentFunded",         "type": "uint256" },
+          { "internalType": "uint256", "name": "fundsReachedCC",        "type": "uint256" },
+          { "internalType": "uint256", "name": "fundsReachedBuilder",   "type": "uint256" }
         ],
         "internalType": "struct TransparencyPortal.ProjectProgress",
-        "name": "progress",
+        "name": "",
         "type": "tuple"
-      },
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
+    "name": "getFundFlow",
+    "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "projectID", "type": "string" },
-          { "internalType": "uint256", "name": "allocatedBudget", "type": "uint256" },
-          { "internalType": "uint256", "name": "totalDisbursed", "type": "uint256" },
-          { "internalType": "uint256", "name": "totalUtilized", "type": "uint256" },
-          { "internalType": "uint256", "name": "unutilizedTreasuryFunds", "type": "uint256" },
-          { "internalType": "uint256", "name": "ccHoldingFunds", "type": "uint256" }
+          { "internalType": "string",  "name": "projectID",          "type": "string" },
+          { "internalType": "uint256", "name": "allocatedBudget",    "type": "uint256" },
+          { "internalType": "uint256", "name": "releasedToCC",       "type": "uint256" },
+          { "internalType": "uint256", "name": "forwardedToBuilder", "type": "uint256" },
+          { "internalType": "uint256", "name": "pendingAtCC",        "type": "uint256" },
+          { "internalType": "uint256", "name": "unreleasedBudget",   "type": "uint256" }
         ],
         "internalType": "struct TransparencyPortal.FundFlow",
-        "name": "flow",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
+    "name": "getProjectParticipants",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string",  "name": "projectID",      "type": "string" },
+          { "internalType": "address", "name": "financeMinistry","type": "address" },
+          { "internalType": "address", "name": "treasury",       "type": "address" },
+          { "internalType": "address", "name": "cityCorporation","type": "address" },
+          { "internalType": "address", "name": "builder",        "type": "address" }
+        ],
+        "internalType": "struct TransparencyPortal.ProjectParticipants",
+        "name": "",
         "type": "tuple"
       }
     ],
@@ -205,11 +339,11 @@ export const TRANSPARENCY_PORTAL_ABI = [
     "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "projectID", "type": "string" },
-          { "internalType": "string", "name": "projectName", "type": "string" },
+          { "internalType": "string",  "name": "projectID",       "type": "string" },
+          { "internalType": "string",  "name": "projectName",     "type": "string" },
           { "internalType": "uint256", "name": "allocatedBudget", "type": "uint256" },
-          { "internalType": "uint256", "name": "totalDisbursed", "type": "uint256" },
-          { "internalType": "uint256", "name": "totalUtilized", "type": "uint256" },
+          { "internalType": "uint256", "name": "totalDisbursed",  "type": "uint256" },
+          { "internalType": "uint256", "name": "totalUtilized",   "type": "uint256" },
           { "internalType": "uint256", "name": "utilizationRate", "type": "uint256" }
         ],
         "internalType": "struct TransparencyPortal.ProjectFinancialSummary[]",
@@ -223,7 +357,7 @@ export const TRANSPARENCY_PORTAL_ABI = [
 ];
 
 // ─── Contract Addresses ───────────────────────────────────────────────────────
-// Replace these local hex hashes following your local deployment execution
+// Replace these after each fresh Remix deployment
 export const CONTRACT_ADDRESSES = {
   PROJECT_REGISTRY:      "0x461EF2d1A1962C0B972C040a0C7701776441132D",
   FUND_TRANSFER_MANAGER: "0xDF1A6608bfc55FD94821e2837C2B7344132e7633",
