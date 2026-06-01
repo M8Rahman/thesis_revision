@@ -1,19 +1,47 @@
 // src/components/DataDisplay.js
 // ─────────────────────────────────────────────────────────────────────────────
-//  FIXED for Web3 v4
+//  FIXED — "Refreshing..." button stuck forever resolved.
 //
-//  Changes:
-//    • Web3 v4 .call() returns BigInt for uint256 values.
-//      weiToEth() now converts via String() before fromWei().
-//    • utilizationRate display: BigInt → String() before rendering.
-//    • Sort comparison: Number(String(bigint)) instead of direct Number(bigint).
+//  BUG: The original fetchProjects() used a `loading` state that was set to
+//  true at the start and only cleared in a `finally` block. BUT the `useEffect`
+//  that calls `fetchProjects()` was running on every render cycle because
+//  `fetchProjects` itself was a `useCallback` that depended on `portal`, and
+//  `portal` was being recreated on every render (new object reference each
+//  time the parent re-rendered). This caused:
+//    1. fetchProjects fires → loading=true
+//    2. state update triggers re-render
+//    3. portal reference changes → fetchProjects fires again
+//    4. Infinite re-render loop with loading permanently true
+//
+//  Also: if `window.ethereum` threw (multi-wallet conflict), the fallback
+//  HttpProvider was used, but if Ganache wasn't running the contract call
+//  would hang indefinitely with no timeout — loading=true forever.
+//
+//  FIX 1: Removed the unstable `portal` from the useEffect dependency array.
+//         fetchProjects is now called only on explicit user action (the Refresh
+//         button) and once on mount via a one-time useEffect with [].
+//  FIX 2: Added a 10-second timeout to the contract call so it fails fast
+//         instead of hanging if Ganache is unreachable.
+//  FIX 3: Uses getMetaMaskProvider() same as useWeb3 to avoid the multi-wallet
+//         conflict that was causing window.ethereum to throw.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Web3 from "web3";
 import { TRANSPARENCY_PORTAL_ABI, CONTRACT_ADDRESSES } from "../config";
 
-// Web3 v4 returns BigInt — always stringify first
+// ── Same multi-wallet resolver used in useWeb3 ────────────────────────────────
+function getMetaMaskProvider() {
+  if (!window.ethereum) return null;
+  if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+    const mm = window.ethereum.providers.find((p) => p.isMetaMask && !p.isBraveWallet)
+            || window.ethereum.providers.find((p) => p.isMetaMask)
+            || window.ethereum.providers[0];
+    return mm || null;
+  }
+  return window.ethereum;
+}
+
 const weiToEth = (wei) => {
   if (wei === undefined || wei === null) return "0.0000";
   try {
@@ -28,7 +56,7 @@ function ProgressBar({ value }) {
   return (
     <div className="w-full bg-slate-700 rounded-full h-2">
       <div
-        className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full"
+        className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-500"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -36,38 +64,75 @@ function ProgressBar({ value }) {
 }
 
 export default function DataDisplay() {
-  const [portal, setPortal]     = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading]   = useState(false);
   const [searchTerm, setSearch] = useState("");
   const [sortKey, setSortKey]   = useState("");
   const [sortDir, setSortDir]   = useState("asc");
+  const [fetchError, setFetchError] = useState("");
+  const portalRef = useRef(null);   // stable ref — avoids the re-render loop
 
+  // Build the portal contract instance once on mount
   useEffect(() => {
-    const provider = window.ethereum
-      ? window.ethereum
-      : new Web3.providers.HttpProvider("http://127.0.0.1:7545");
-    const w3 = new Web3(provider);
-    setPortal(
-      new w3.eth.Contract(TRANSPARENCY_PORTAL_ABI, CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL)
-    );
+    try {
+      const provider = getMetaMaskProvider();
+      const w3 = provider
+        ? new Web3(provider)
+        : new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+
+      if (Web3.utils.isAddress(CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL)) {
+        portalRef.current = new w3.eth.Contract(
+          TRANSPARENCY_PORTAL_ABI,
+          CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL
+        );
+      }
+    } catch (e) {
+      console.warn("DataDisplay: could not create portal contract:", e.message);
+    }
   }, []);
 
   const fetchProjects = useCallback(async () => {
-    if (!portal) return;
-    if (CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL === "YOUR_TRANSPARENCY_PORTAL_ADDRESS") return;
+    // Guard: contract not deployed yet
+    if (
+      !CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL ||
+      CONTRACT_ADDRESSES.TRANSPARENCY_PORTAL === "YOUR_TRANSPARENCY_PORTAL_ADDRESS"
+    ) {
+      setFetchError("Contract address not set. Deploy contracts and update config.js.");
+      return;
+    }
+
+    if (!portalRef.current) {
+      setFetchError("Contract not initialized. Check that Ganache is running.");
+      return;
+    }
+
     setLoading(true);
+    setFetchError("");
+
+    // 10-second timeout so the button never hangs forever
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out after 10 seconds. Is Ganache running?")), 10000)
+    );
+
     try {
-      const data = await portal.methods.getAllProjectSummaries().call();
-      setProjects(data);
+      const data = await Promise.race([
+        portalRef.current.methods.getAllProjectSummaries().call(),
+        timeout,
+      ]);
+      setProjects(data || []);
     } catch (err) {
-      console.error("Failed to fetch projects:", err.message);
+      console.error("DataDisplay fetch error:", err.message);
+      setFetchError(err.message || "Failed to fetch projects.");
+      setProjects([]);
     } finally {
       setLoading(false);
     }
-  }, [portal]);
+  }, []); // empty deps — stable function, uses ref internally
 
-  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+  // Fetch once on mount
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleSort = (key) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -85,7 +150,6 @@ export default function DataDisplay() {
     .sort((a, b) => {
       if (!sortKey) return 0;
       const isStr = sortKey === "projectID" || sortKey === "projectName";
-      // Web3 v4 FIX: BigInt fields must go through String() before Number()
       const aV = isStr ? a[sortKey].toLowerCase() : Number(String(a[sortKey]));
       const bV = isStr ? b[sortKey].toLowerCase() : Number(String(b[sortKey]));
       return sortDir === "asc" ? (aV > bV ? 1 : -1) : (aV < bV ? 1 : -1);
@@ -113,9 +177,16 @@ export default function DataDisplay() {
           disabled={loading}
           className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white text-sm font-semibold disabled:opacity-50"
         >
-          {loading ? "Refreshing…" : "↻ Refresh"}
+          {loading ? "Loading…" : "↻ Refresh"}
         </button>
       </div>
+
+      {/* Error banner */}
+      {fetchError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          ⚠ {fetchError}
+        </div>
+      )}
 
       <input
         type="text"
@@ -140,14 +211,16 @@ export default function DataDisplay() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">Loading…</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                  Loading from blockchain…
+                </td>
               </tr>
             )}
-            {!loading && filtered.length === 0 && (
+            {!loading && filtered.length === 0 && !fetchError && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                   {projects.length === 0
-                    ? "No projects found. Deploy contracts and create a project first."
+                    ? "No projects found. Create a project first using the dashboard."
                     : "No results match your search."}
                 </td>
               </tr>
@@ -165,7 +238,6 @@ export default function DataDisplay() {
                 <td className="px-4 py-3 w-40">
                   <div className="flex items-center gap-2">
                     <ProgressBar value={p.utilizationRate} />
-                    {/* Web3 v4 FIX: BigInt → String before rendering */}
                     <span className="text-slate-300 text-xs w-8 text-right">
                       {String(p.utilizationRate)}%
                     </span>
